@@ -8,12 +8,12 @@ import time
 import random
 import numpy as np
 
-N_runs = 12
+N_runs = 2000
 
 random.seed()
 runs = []
-mig_rate = np.round(np.logspace(3,6,N_runs))
-K = 10
+mig_rate = np.round(np.logspace(2,7,N_runs))
+K = np.logspace(-1,5,N_runs)
 path = 'output/'
 for i in xrange(0,N_runs):
     seed = int(1000*random.random())
@@ -30,7 +30,7 @@ def execute(pars):
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
-    pool = mp.Pool(processes=6)
+    pool = mp.Pool(processes=20)
     pool.map(execute, runs)
     pool.close()
     pool.join()

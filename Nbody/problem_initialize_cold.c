@@ -30,13 +30,13 @@ double* omega;
 double* lambda;
 double* a;
 double* e;
-double mig_time, dispersal_time, mig_rate, output_rate;
+double mig_time, dispersal_time, mig_rate, output_rate, K;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
     mig_rate = atof(argv[1]);
-    double K = atof(argv[2]);       //Lee & Peale (2002) K.
+    K = atof(argv[2]);              //Lee & Peale (2002) K.
     srand(atoi(argv[3]));
     strcat(output_name,argv[4]);
     
@@ -53,10 +53,10 @@ int main(int argc, char* argv[]){
     reb_configure_box(r,boxsize,2,2,1);
     
     //Migration parameters
-    mig_time = mig_rate*2;
-    dispersal_time = mig_time/4;
+    mig_time = mig_rate*4;
+    dispersal_time = mig_rate;
     
-    double tmax = mig_time + dispersal_time + 1000;
+    double tmax = mig_time + 2*dispersal_time;
     double n_output = 5000;
     output_rate = tmax/n_output;
     
@@ -82,9 +82,10 @@ int main(int argc, char* argv[]){
     
     //Planet 2
     {
+        double a_offset = 0.02;
         double a=1.02, m=0.853*mJ, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
-        p = reb_tools_orbit_to_particle(r->G, star, m, a, 0, inc, 0, 0, 0);
+        p = reb_tools_orbit_to_particle(r->G, star, m, a+a_offset, 0, inc, 0, 0, 0);
         p.r = 0.000467;
         p.hash = r->N;
         reb_add(r, p);
@@ -132,7 +133,7 @@ void heartbeat(struct reb_simulation* r){
         }
         
         FILE* f = fopen(output_name, "a");
-        fprintf(f,"%e,%e,%d,%d,",r->t,relE,r->N,N_mini);
+        fprintf(f,"%e,%e,%d,%e,%e,",r->t,relE,r->N,mig_rate,K);
         calc_resonant_angles(r,f);
         fclose(f);
     }
