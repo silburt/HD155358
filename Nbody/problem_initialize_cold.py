@@ -17,8 +17,8 @@ K = np.logspace(-1,5,N_runs)
 path = 'output/'
 for i in xrange(0,N_runs):
     seed = int(1000*random.random())
-    name = path+'migrate%.2e_K%d_sd%d'%(mig_rate[i],K,seed)
-    runs.append((mig_rate[i],K,seed,name))
+    name = path+'migrate%.1e_K%.1e_sd%d'%(mig_rate[i],K[i],seed)
+    runs.append((mig_rate[i],K[i],seed,name))
 
 os.system('make')
 
