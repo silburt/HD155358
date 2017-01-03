@@ -12,7 +12,7 @@ N_runs = 2000
 
 random.seed()
 runs = []
-mig_rate = np.round(np.logspace(2,7,N_runs))
+mig_rate = random.sample(np.round(np.logspace(2,7,N_runs)), N_runs)
 K = np.logspace(-1,5,N_runs)
 path = 'output/'
 for i in xrange(0,N_runs):
