@@ -8,12 +8,12 @@ import time
 import random
 import numpy as np
 
-N_runs = 2000
+N_runs = 1000
 
 random.seed()
 runs = []
 mig_rate = random.sample(np.round(np.logspace(2,7,N_runs)), N_runs)
-K = np.logspace(-1,5,N_runs)
+K = np.logspace(-1,4,N_runs)
 path = 'output/'
 for i in xrange(0,N_runs):
     seed = int(1000*random.random())
@@ -25,12 +25,11 @@ os.system('make')
 length = len(runs)
 
 def execute(pars):
-    #print str(pars[0]), str(pars[1]), str(pars[2]), str(pars[3])
     os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
-    pool = mp.Pool(processes=20)
+    pool = mp.Pool(processes=25)
     pool.map(execute, runs)
     pool.close()
     pool.join()

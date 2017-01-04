@@ -25,13 +25,13 @@ while i < N:            #just want the main .txt files
         i += 1
 
 def execute(filename):
-    #os.system('python orbits.py '+filename)
-    os.system('python check_resonance.py '+filename)
+    os.system('python orbits.py '+filename)
+    #os.system('python check_resonance.py '+filename)
     print 'finished process'
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
-    pool = mp.Pool(processes=N)
+    pool = mp.Pool(processes=20)
     print 'computing '+str(N)+' orbit.py analyses'
     pool.map(execute, files)
     pool.close()

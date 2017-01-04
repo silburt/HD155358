@@ -46,6 +46,7 @@ int main(int argc, char* argv[]){
     r->heartbeat	= heartbeat;
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
+    r->usleep=20;
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
