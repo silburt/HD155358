@@ -12,6 +12,8 @@ file_name=str(sys.argv[1])
 
 fos = open(''+file_name, 'r')
 time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+#time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3, m1, m2 = np.loadtxt(fos, delimiter=',', unpack=True)
+
 #time, dE, N, N_mini, HSF, m1, m2, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
 #time, dE, N, N_mini, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
 
