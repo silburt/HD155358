@@ -35,10 +35,12 @@ double mig_time, dispersal_time, mig_rate, output_rate, K;
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    mig_rate = atof(argv[1]);
-    K = atof(argv[2]);              //Lee & Peale (2002) K.
-    srand(atoi(argv[3]));
-    strcat(output_name,argv[4]);
+    double m1 = atof(argv[1]);
+    double m2 = atof(argv[2]);
+    mig_rate = atof(argv[3]);
+    K = atof(argv[4]);              //Lee & Peale (2002) K.
+    srand(atoi(argv[5]));
+    strcat(output_name,argv[6]);
     
     r->integrator	= REB_INTEGRATOR_WHFAST;
     
@@ -72,7 +74,7 @@ int main(int argc, char* argv[]){
     r->dt = 2*M_PI*pow(a1,1.5)/50;
     // Planet 1
     {
-        double a=a1, m=0.926*mJ, inc=reb_random_normal(0.00001);
+        double a=a1, m=m1*mJ, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, 0, inc, 0, 0, reb_random_uniform(0,2.*M_PI));
         p.r = 0.000467;
@@ -83,7 +85,7 @@ int main(int argc, char* argv[]){
     //Planet 2
     {
         double a_offset = 0.02;
-        double a=1.02, m=0.853*mJ, inc=reb_random_normal(0.00001);
+        double a=1.02, m=m2*mJ, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a+a_offset, 0, inc, 0, 0, reb_random_uniform(0,2.*M_PI));
         p.r = 0.000467;
@@ -193,7 +195,7 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     while(phi3 >= 2*M_PI) phi3 -= 2*M_PI;
     while(phi3 < 0.) phi3 += 2*M_PI;
     
-    fprintf(f,"%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3);
+    fprintf(f,"%f,%f,%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3,r->particles[1].m,r->particles[2].m);
     
 }
 
