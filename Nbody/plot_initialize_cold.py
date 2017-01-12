@@ -6,13 +6,14 @@ import sys
 import matplotlib.pyplot as plt
 from progress.bar import Bar
 import rebound
+from mpl_toolkits.mplot3d import Axes3D
 
 def check_resonance(theta, times):
     m1sini,m2sini,aa1,aa2,h1,h2,k1,k2,lambda1,lambda2,sini = theta
     AUyr2ms = 29682.77                   #AU/(yr/2pi) -> m/s
     dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
     mJ = 9.543e-4                        #Jupiter mass -> solar mass
-    a1, e1, a2, e2, Pr = [], [], [], [], []
+    a1, e1, a2, e2, Pr, phi1, phi2, phi3 = [], [], [], [], [], np.empty(0), np.empty(0), np.empty(0)
     
     sim = rebound.Simulation()
     sim.integrator = "whfast"
@@ -26,7 +27,24 @@ def check_resonance(theta, times):
         o1 = sim.particles[1].calculate_orbit(sim.particles[0])
         o2 = sim.particles[2].calculate_orbit(sim.particles[0])
         a1.append(o1.a),e1.append(o1.e),a2.append(o2.a),e2.append(o2.e), Pr.append(o2.P/o1.P)
-    return a1, e1, a2, e2, Pr
+        phi1 = np.append(phi1,2.*o2.l - o1.l - o1.pomega)
+        phi2 = np.append(phi1,2.*o2.l - o1.l - o2.pomega)
+        phi3 = np.append(phi1,o1.pomega - o2.pomega)
+    while np.any(phi1>2*np.pi) or np.any(phi2>2*np.pi) or np.any(phi3>2*np.pi):
+        phi1[phi1>2*np.pi] -= 2*np.pi
+        phi2[phi2>2*np.pi] -= 2*np.pi
+        phi3[phi3>2*np.pi] -= 2*np.pi
+    while np.any(phi1<0) or np.any(phi2<0) or np.any(phi3<0):
+        phi1[phi1<0] += 2*np.pi
+        phi2[phi2<0] += 2*np.pi
+        phi3[phi3<0] += 2*np.pi
+    return a1, e1, a2, e2, Pr, phi1, phi2, phi3
+
+def get_phi_amplitude(phi, endpoints):
+    A1 = np.max(phi[-endpoints:]) - np.min(phi[-endpoints:])  #by default, these angles are between 0-2pi
+    phi[phi > np.pi] -= 2*np.pi
+    A2 = np.max(phi[-endpoints:]) - np.min(phi[-endpoints:])
+    return min([A1,A2])
 
 #Specify directory
 dir = sys.argv[1]
@@ -51,6 +69,7 @@ A_a1 = []   #semi-major axis amplitude of planet 1
 A_a2 = []   #semi-major axis amplitude of planet 2
 MR = []     #migration rate
 K = []      #Lee & Peale (2002)
+A_phi1, A_phi2, A_phi3 = [], [], []
 for i,f in enumerate(files):
     fos = open(f, 'r')
     time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
@@ -64,6 +83,9 @@ for i,f in enumerate(files):
         A_e2.append((np.max(e2[-endpoints:]) - np.min(e2[-endpoints:]))/2.)
         A_a1.append((np.max(a1[-endpoints:]) - np.min(a1[-endpoints:]))/2.)
         A_a2.append((np.max(a2[-endpoints:]) - np.min(a2[-endpoints:]))/2.)
+        A_phi1.append(get_phi_amplitude(phi1, endpoints))
+        A_phi2.append(get_phi_amplitude(phi2, endpoints))
+        A_phi3.append(get_phi_amplitude(phi3, endpoints))
         MR.append(mig_rate[0])
         K.append(dampratio[0])
     bar.next()
@@ -81,18 +103,47 @@ ndim = 13
 filename = '../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy'
 samples = np.load(filename)[:, burnin:, :].reshape((-1, ndim))
 bar = Bar('Processing', max=Ndraws)
-A_Ps, A_e1s, A_e2s, A_a1s, A_a2s = [], [], [], [], []
+A_Ps, A_e1s, A_e2s, A_a1s, A_a2s, A_phi1s, A_phi2s, A_phi3s = [], [], [], [], [], [], [], []
 endpoints = 250
 for theta in samples[np.random.randint(len(samples), size=Ndraws)]:
-    a1, e1, a2, e2, Pratio = check_resonance(theta[:11],times)
+    a1, e1, a2, e2, Pratio, phi1, phi2, phi3 = check_resonance(theta[:11],times)
     A_Ps.append((np.max(Pratio) - np.min(Pratio))/2.)
     A_e1s.append((np.max(e1[-endpoints:]) - np.min(e1[-endpoints:]))/2.)
     A_e2s.append((np.max(e2[-endpoints:]) - np.min(e2[-endpoints:]))/2.)
     A_a1s.append((np.max(a1[-endpoints:]) - np.min(a1[-endpoints:]))/2.)
     A_a2s.append((np.max(a2[-endpoints:]) - np.min(a2[-endpoints:]))/2.)
+    A_phi1s.append(get_phi_amplitude(phi1, endpoints))
+    A_phi2s.append(get_phi_amplitude(phi2, endpoints))
+    A_phi3s.append(get_phi_amplitude(phi3, endpoints))
     bar.next()
 bar.finish()
 
+size=25
+colorbar = 'autumn'
+fig = plt.figure(figsize=(8,10))
+
+#plot 1
+axes = fig.add_subplot(2, 1, 1, projection='3d')
+sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
+axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+plt.colorbar(sc, ax=axes, label=r'log10($K$), $K=\tau_e/\tau_a$')
+axes.legend(loc='upper left', numpoints=1, fontsize=8)
+axes.set_xlabel('Amplitude Phi1')
+axes.set_ylabel('Amplitude Phi2')
+axes.set_zlabel('Amplitude Phi3')
+axes.view_init(elev = 12, azim=-91)
+
+#plot 2
+axes = fig.add_subplot(2, 1, 2, projection='3d')
+sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
+axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+plt.colorbar(sc, ax=axes, label='log10(Migration Rate)')
+axes.set_xlabel('Amplitude Phi1')
+axes.set_ylabel('Amplitude Phi2')
+axes.set_zlabel('Amplitude Phi3')
+axes.view_init(elev = 12, azim=-91)
+
+'''
 #figures
 size=25
 colorbar = 'autumn'
@@ -142,7 +193,7 @@ plt.colorbar(sc2, ax=axes[1], label='log10(Migration Rate)')
 plt.colorbar(sc3, ax=axes[2], label=r'log10($K$), $K=\tau_e/\tau_a$')
 plt.colorbar(sc4, ax=axes[3], label='log10(Migration Rate)')
 axes[0].set_title('Variable Amplitudes: 0.5*(V$_{max}$ - V$_{min}$)')
-
+'''
 '''
 sc = axes[0].scatter(K, MR, c=A_P, s=size, cmap=colorbar, lw=0)
 sc2 = axes[1].scatter(K, MR, c=A_e1, s=size, cmap=colorbar, lw=0)
