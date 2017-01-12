@@ -8,7 +8,7 @@ import time
 import random
 import numpy as np
 
-N_runs = 1000
+N_runs = 200
 
 #draw masses from the posterior
 m1 = []
@@ -17,7 +17,7 @@ burnin = 1000
 ndim = 13
 filename = '../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy'
 samples = np.load(filename)[:, burnin:, :].reshape((-1, ndim))
-for theta in samples[np.random.randint(len(samples), size=len(K))]:
+for theta in samples[np.random.randint(len(samples), size=N_runs)]:
     m1.append(theta[0]/theta[10])
     m2.append(theta[1]/theta[10])
 
@@ -36,7 +36,8 @@ os.system('make')
 length = len(runs)
 
 def execute(pars):
-    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4])+' '+str(pars[5]))
+    print pars
+#os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4])+' '+str(pars[5]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
