@@ -12,7 +12,7 @@ file_name=str(sys.argv[1])
 
 fos = open(''+file_name, 'r')
 #time, dE, N, N_mini, HSF, m1, m2, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
-time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3, m1, m2, ta1, te1, ta2, te2 = np.loadtxt(fos, delimiter=',', unpack=True)
 
 
 ms=3
@@ -25,8 +25,8 @@ P2 = np.sqrt(4*np.pi**2 * a2**3)
 
 #plot
 axes[2].plot(time,P2/P1,'o',ms=ms, markeredgecolor='none')
-axes[1].plot(time, e1, 'o', ms=ms, markeredgecolor='none', label='inner')
-axes[1].plot(time, e2, 'o', ms=ms, markeredgecolor='none', label='outer')
+axes[1].plot(time, te1, 'o', ms=ms, markeredgecolor='none', label='inner')
+axes[1].plot(time, te2, 'o', ms=ms, markeredgecolor='none', label='outer')
 axes[0].plot(time,phi1, 'o', ms=ms, markeredgecolor='none', label='phi1')
 axes[0].plot(time,phi2, 'o', ms=ms, markeredgecolor='none', label='phi2')
 axes[0].plot(time,phi3, 'o', ms=ms, markeredgecolor='none', label='phi3')

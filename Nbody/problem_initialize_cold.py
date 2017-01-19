@@ -8,7 +8,7 @@ import time
 import random
 import numpy as np
 
-N_runs = 200
+N_runs = 1000
 
 #draw masses from the posterior
 m1 = []
@@ -36,8 +36,7 @@ os.system('make')
 length = len(runs)
 
 def execute(pars):
-    print pars
-#os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4])+' '+str(pars[5]))
+    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4])+' '+str(pars[5]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':

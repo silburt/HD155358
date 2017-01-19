@@ -35,8 +35,8 @@ double mig_time, dispersal_time, mig_rate, output_rate, K;
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    double m1 = atof(argv[1]);
-    double m2 = atof(argv[2]);
+    double m1 = atof(argv[1]);      //units of jupiter mass
+    double m2 = atof(argv[2]);      //units of jupiter mass
     mig_rate = atof(argv[3]);
     K = atof(argv[4]);              //Lee & Peale (2002) K.
     srand(atoi(argv[5]));
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]){
     
     //Migration parameters
     mig_time = mig_rate*4;
-    dispersal_time = mig_rate;
+    dispersal_time = mig_time;
     
     double tmax = mig_time + 2*dispersal_time;
     double n_output = 5000;
@@ -99,6 +99,7 @@ int main(int argc, char* argv[]){
     tau_a = calloc(sizeof(double),r->N);
     tau_e = calloc(sizeof(double),r->N);
     tau_a[2] = 2.*M_PI*mig_rate;
+    tau_e[1] = 2.*M_PI*mig_rate/K;
     tau_e[2] = 2.*M_PI*mig_rate/K;
     a = calloc(sizeof(double),r->N);
     e = calloc(sizeof(double),r->N);
@@ -195,7 +196,7 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     while(phi3 >= 2*M_PI) phi3 -= 2*M_PI;
     while(phi3 < 0.) phi3 += 2*M_PI;
     
-    fprintf(f,"%f,%f,%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3,r->particles[1].m,r->particles[2].m);
+    fprintf(f,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3,r->particles[1].m,r->particles[2].m,tau_a[1],tau_e[1],tau_a[2],tau_e[2]);
     
 }
 
@@ -225,6 +226,7 @@ void migration_forces(struct reb_simulation* r){
             double fac = pow(1e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));
             tau_a[2] *= fac;
             tau_e[2] *= fac;
+            tau_e[1] *= fac;
         }
         const double G = r->G;
         const int N = r->N;

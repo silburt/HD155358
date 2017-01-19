@@ -123,24 +123,28 @@ colorbar = 'autumn'
 fig = plt.figure(figsize=(8,10))
 
 #plot 1
-axes = fig.add_subplot(2, 1, 1, projection='3d')
-sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
-axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+axes = fig.add_subplot(2, 1, 1)#, projection='3d')
+#sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
+#axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+sc = axes.scatter(A_phi1,A_phi2,c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
+axes.scatter(A_phi1s,A_phi2s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
 plt.colorbar(sc, ax=axes, label=r'log10($K$), $K=\tau_e/\tau_a$')
 axes.legend(loc='upper left', numpoints=1, fontsize=8)
 axes.set_xlabel('Amplitude Phi1')
 axes.set_ylabel('Amplitude Phi2')
-axes.set_zlabel('Amplitude Phi3')
+#axes.set_zlabel('Amplitude Phi3')
 axes.view_init(elev = 12, azim=-91)
 
 #plot 2
-axes = fig.add_subplot(2, 1, 2, projection='3d')
-sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
-axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+axes = fig.add_subplot(2, 1, 2)#, projection='3d')
+#sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
+#axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+sc = axes.scatter(A_phi1,A_phi2,c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
+axes.scatter(A_phi1s,A_phi2s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
 plt.colorbar(sc, ax=axes, label='log10(Migration Rate)')
 axes.set_xlabel('Amplitude Phi1')
 axes.set_ylabel('Amplitude Phi2')
-axes.set_zlabel('Amplitude Phi3')
+#axes.set_zlabel('Amplitude Phi3')
 axes.view_init(elev = 12, azim=-91)
 
 '''
