@@ -128,26 +128,29 @@ d2 = pd.DataFrame(zip(A_Ps, A_e1s, A_e2s, A_a1s, A_a2s, A_phi1s, A_phi2s, A_phi3
 size=25
 colorbar = 'autumn'
 fig = plt.figure(figsize=(8,10))
-plot_x, plot_y = "a1", "a2"     #the x and y values to be plotted
+plot_x, plot_y = "a2", "e2"     #the x and y values to be plotted
 MCMC_alpha = 0.5
 
 #plot 1
 axes = fig.add_subplot(2, 1, 1)#, projection='3d')
-
 sc = axes.scatter(d1[plot_x],d1[plot_y],c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
 axes.scatter(d2[plot_x],d2[plot_y], color='black', s=size, cmap=colorbar, alpha=MCMC_alpha, lw=0, label='MCMC samples')
-plt.colorbar(sc, ax=axes, label=r'log10($K$), $K=\tau_e/\tau_a$')
+plt.colorbar(sc, ax=axes, label=r'log10($K$), $K=\tau_a/\tau_e$')
 axes.legend(loc='upper left', numpoints=1, fontsize=8)
 axes.set_xlabel('Amplitude %s'%plot_x)
 axes.set_ylabel('Amplitude %s'%plot_y)
+#axes.set_xscale('log')
+#axes.set_xlim([1e-4,1])
 
 #plot 2
 axes = fig.add_subplot(2, 1, 2)#, projection='3d')
 sc = axes.scatter(d1[plot_x],d1[plot_y],c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
-axes.scatter(d2[plot_x],d2[plot_y], color='black', s=size, cmap=colorbar, alhpa=MCMC_alpha, lw=0, label='MCMC samples')
+axes.scatter(d2[plot_x],d2[plot_y], color='black', s=size, cmap=colorbar, alpha=MCMC_alpha, lw=0, label='MCMC samples')
 plt.colorbar(sc, ax=axes, label='log10(Migration Rate)')
 axes.set_xlabel('Amplitude %s'%plot_x)
 axes.set_ylabel('Amplitude %s'%plot_y)
+#axes.set_xscale('log')
+#axes.set_xlim([1e-4,1])
 
 
 #save & plot
