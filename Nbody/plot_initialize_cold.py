@@ -1,6 +1,7 @@
 #This macro plots the results in a 2d heatmap: K vs. migration rate, with the color being the various amplitudes (period ratio, eccentricity, etc).
 
 import numpy as np
+import pandas as pd
 import glob
 import sys
 import matplotlib.pyplot as plt
@@ -61,7 +62,7 @@ while i < N:            #just want the main .txt files
         i += 1
 
 bar = Bar('Processing', max=N)
-endpoints = 1000
+endpoints = 400
 A_P = []    #period amplitude
 A_e1 = []   #eccentricity amplitude of planet 1
 A_e2 = []   #eccentricity amplitude of planet 2
@@ -72,7 +73,8 @@ K = []      #Lee & Peale (2002)
 A_phi1, A_phi2, A_phi3 = [], [], []
 for i,f in enumerate(files):
     fos = open(f, 'r')
-    time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+    #time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+    time, dE, N, mig_rate, dampratio, a1, e1, a2, e2, phi1, phi2, phi3, m1, m2, taua1, taue1, taua2, taue2 = np.loadtxt(fos, delimiter=',', unpack=True)
     if np.any(e2>1) or np.any(e2<0) or np.any(e1>1) or np.any(e1<0) or np.any(np.abs((a2/a1)**1.5 - 2)>0.3):
         pass
         #print "\nerror in %s, skipping file."%f
@@ -90,6 +92,9 @@ for i,f in enumerate(files):
         K.append(dampratio[0])
     bar.next()
 bar.finish()
+
+cols = ["P", "e1", "e2", "a1", "a2", "phi1", "phi2", "phi3"]
+d1 = pd.DataFrame(zip(A_P, A_e1, A_e2, A_a1, A_a2, A_phi1, A_phi2, A_phi3), columns=cols)
 
 print "Finished analyzing simulated runs. Now analyzing samples from posterior to plot"
 #draw samples from emcee chain
@@ -118,34 +123,48 @@ for theta in samples[np.random.randint(len(samples), size=Ndraws)]:
     bar.next()
 bar.finish()
 
+d2 = pd.DataFrame(zip(A_Ps, A_e1s, A_e2s, A_a1s, A_a2s, A_phi1s, A_phi2s, A_phi3s), columns=cols)
+
 size=25
 colorbar = 'autumn'
 fig = plt.figure(figsize=(8,10))
+plot_x, plot_y = "a1", "a2"     #the x and y values to be plotted
+MCMC_alpha = 0.5
 
 #plot 1
 axes = fig.add_subplot(2, 1, 1)#, projection='3d')
-#sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
-#axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
-sc = axes.scatter(A_phi1,A_phi2,c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
-axes.scatter(A_phi1s,A_phi2s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+
+sc = axes.scatter(d1[plot_x],d1[plot_y],c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
+axes.scatter(d2[plot_x],d2[plot_y], color='black', s=size, cmap=colorbar, alpha=MCMC_alpha, lw=0, label='MCMC samples')
 plt.colorbar(sc, ax=axes, label=r'log10($K$), $K=\tau_e/\tau_a$')
 axes.legend(loc='upper left', numpoints=1, fontsize=8)
-axes.set_xlabel('Amplitude Phi1')
-axes.set_ylabel('Amplitude Phi2')
-#axes.set_zlabel('Amplitude Phi3')
-axes.view_init(elev = 12, azim=-91)
+axes.set_xlabel('Amplitude %s'%plot_x)
+axes.set_ylabel('Amplitude %s'%plot_y)
 
 #plot 2
 axes = fig.add_subplot(2, 1, 2)#, projection='3d')
+sc = axes.scatter(d1[plot_x],d1[plot_y],c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
+axes.scatter(d2[plot_x],d2[plot_y], color='black', s=size, cmap=colorbar, alhpa=MCMC_alpha, lw=0, label='MCMC samples')
+plt.colorbar(sc, ax=axes, label='log10(Migration Rate)')
+axes.set_xlabel('Amplitude %s'%plot_x)
+axes.set_ylabel('Amplitude %s'%plot_y)
+
+
+#save & plot
+plt.savefig(dir+'amplitude_%s_%s.png'%(plot_x, plot_y))
+plt.show()
+
+'''
+#3D plots
+#sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(K), s=size, cmap=colorbar, lw=0, label='simulated points')
+#axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
+#axes.set_zlabel('Amplitude Phi3')
+#axes.view_init(elev = 12, azim=-91)
 #sc = axes.scatter(A_phi1,A_phi2,A_phi3,c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
 #axes.scatter(A_phi1s,A_phi2s,A_phi3s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
-sc = axes.scatter(A_phi1,A_phi2,c=np.log10(MR), s=size, cmap=colorbar, lw=0, label='simulated points')
-axes.scatter(A_phi1s,A_phi2s, color='black', s=size, cmap=colorbar, lw=0, label='MCMC samples')
-plt.colorbar(sc, ax=axes, label='log10(Migration Rate)')
-axes.set_xlabel('Amplitude Phi1')
-axes.set_ylabel('Amplitude Phi2')
 #axes.set_zlabel('Amplitude Phi3')
-axes.view_init(elev = 12, azim=-91)
+#axes.view_init(elev = 12, azim=-91)
+'''
 
 '''
 #figures
@@ -216,7 +235,3 @@ plt.colorbar(sc2, ax=axes[1], label='e1 Amplitude')
 plt.colorbar(sc3, ax=axes[2], label='e2 Amplitude')
 axes[0].set_title('Variable Amplitudes: V$_{max}$ - V$_{mean}$')
 '''
-
-#save & plot
-plt.savefig(dir+"amplitude.png")
-plt.show()
