@@ -30,7 +30,7 @@ double* omega;
 double* lambda;
 double* a;
 double* e;
-double mig_time, dispersal_time, mig_rate, output_rate, K;
+double mig_time, dispersal_time, mig_rate, output_rate, K1, K2;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
@@ -38,9 +38,10 @@ int main(int argc, char* argv[]){
     double m1 = atof(argv[1]);      //units of jupiter mass
     double m2 = atof(argv[2]);      //units of jupiter mass
     mig_rate = atof(argv[3]);
-    K = atof(argv[4]);              //Lee & Peale (2002) K.
-    srand(atoi(argv[5]));
-    strcat(output_name,argv[6]);
+    K1 = atof(argv[4]);              //Lee & Peale (2002) K.
+    K2 = atof(argv[5]);
+    srand(atoi(argv[6]));
+    strcat(output_name,argv[7]);
     
     r->integrator	= REB_INTEGRATOR_WHFAST;
     
@@ -99,8 +100,8 @@ int main(int argc, char* argv[]){
     tau_a = calloc(sizeof(double),r->N);
     tau_e = calloc(sizeof(double),r->N);
     tau_a[2] = 2.*M_PI*mig_rate;
-    tau_e[1] = 2.*M_PI*mig_rate/K;
-    tau_e[2] = 2.*M_PI*mig_rate/K;
+    tau_e[1] = 2.*M_PI*mig_rate/K1;
+    tau_e[2] = 2.*M_PI*mig_rate/K2;
     a = calloc(sizeof(double),r->N);
     e = calloc(sizeof(double),r->N);
     omega = calloc(sizeof(double),r->N);
@@ -136,7 +137,7 @@ void heartbeat(struct reb_simulation* r){
         }
         
         FILE* f = fopen(output_name, "a");
-        fprintf(f,"%e,%e,%d,%e,%e,",r->t,relE,r->N,mig_rate,K);
+        fprintf(f,"%e,%e,%d,%e,%e,%e,",r->t,relE,r->N,mig_rate,K1,K2);
         calc_resonant_angles(r,f);
         fclose(f);
     }

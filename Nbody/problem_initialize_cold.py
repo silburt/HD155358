@@ -8,7 +8,7 @@ import time
 import random
 import numpy as np
 
-N_runs = 1000
+N_runs = 2000
 
 #draw masses from the posterior
 m1 = []
@@ -24,17 +24,18 @@ for theta in samples[np.random.randint(len(samples), size=N_runs)]:
 random.seed()
 runs = []
 mig_rate = random.sample(np.round(np.logspace(2,7,N_runs)), N_runs)
-K = np.logspace(-1,4,N_runs)
+K1 = random.sample(np.logspace(-1,4,N_runs), N_runs)
+K2 = np.logspace(-1,4,N_runs)
 path = 'output/'
 for i in xrange(0,N_runs):
     seed = int(1000*random.random())
-    name = path+'taueinner_migrate%.1e_K%.1e_sd%d'%(mig_rate[i],K[i],seed)
-    runs.append((m1[i],m2[i],mig_rate[i],K[i],seed,name))
+    name = path+'taueinner_migrate%.1e_Kin%.1e_Kout%.1e_sd%d'%(mig_rate[i],K1[i],K2[i],seed)
+    runs.append((m1[i],m2[i],mig_rate[i],K1[i],K2[i],seed,name))
 
 os.system('make')
 
 def execute(pars):
-    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4])+' '+str(pars[5]))
+    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4])+' '+str(pars[5])+' '+str(pars[6]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
