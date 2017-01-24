@@ -1,4 +1,4 @@
-export OPENGL=1
+export OPENGL=0
 export OPENMP=0
 export PROFILING=0
 include ../../rebound/src/Makefile.defs
@@ -6,7 +6,7 @@ include ../../rebound/src/Makefile.defs
 all: librebound
 	@echo ""
 	@echo "Compiling problem file ..."
-	$(CC) -I ../../rebound/src/ -Wl,-rpath,./ $(OPT) $(PREDEF) problem_initialize_cold.c -L. -lrebound $(LIB) -o rebound
+	$(CC) -I ../../rebound/src/ -Wl,-rpath,./ $(OPT) $(PREDEF) problem.c -L. -lrebound $(LIB) -o rebound
 	@echo ""
 	@echo "REBOUND compiled successfully."
 
