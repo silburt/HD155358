@@ -28,8 +28,8 @@ def make_runs(N_runs):
     random.seed()
     runs = []
     mig_rate = random.sample(np.round(np.logspace(2,4,N_runs)), N_runs)
-    K1 = random.sample(np.logspace(-1,2.5,N_runs), N_runs)
-    K2 = np.logspace(-1,2.5,N_runs)
+    K1 = random.sample(np.logspace(-1,2,N_runs), N_runs)
+    K2 = np.logspace(-1,2,N_runs)
     path = 'output/'
     for i in xrange(0,N_runs):
         seed = int(1000*random.random())
@@ -61,8 +61,8 @@ def lnlike(theta, sim_time, sim_RVx, sim_RVy, MAP):
     sim_time = x_s*(sim_time + x_t)
     MAP_RV = sim_MAP(sim_time, MAP)
     sim_RV = sim_RVx*np.sin(phi) + sim_RVy*np.cos(phi)
-    MAP_err2 = (5.32*len(sim_time))**2                  #avg uncertainty on
-    return -0.5*np.sum( (sim_RV - MAP_RV)**2 /MAP_err2) + np.log(MAP_err2)
+    MAP_err2 = (len(sim_time))**2           #each MAP data point has some uncertainty to it.
+    return -0.5*np.sum( (sim_RV - MAP_RV)**2/MAP_err2 + np.log(MAP_err2) )
 
 def lnprior(theta):
     x_s, x_t, phi = theta        #x-stretch, x-translate, sinphi (viewing angle)
@@ -78,7 +78,7 @@ def lnprob(theta, sim_time, sim_RVx, sim_RVy, MAP):
 
 def run_emcee(sim_time, sim_RVx, sim_RVy, MAP, filename):
     theta_ini = [1,1,np.pi]   #x_stretch, x_translate, phi (viewing angle)
-    ndim, nwalkers, n_it = len(theta_ini), 10, 10
+    ndim, nwalkers, n_it = len(theta_ini), 20, 2000
     pos = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(sim_time, sim_RVx, sim_RVy, MAP));
     pos, _, _ = sampler.run_mcmc(pos, n_it);
@@ -88,6 +88,7 @@ def run_emcee(sim_time, sim_RVx, sim_RVy, MAP, filename):
 samples = np.load('../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy')[:,1000:,:].reshape((-1, 13))
 MAPP = np.percentile(samples, 50, axis=0)[:-2]
 
+#each pool worker executes this
 def execute(pars):
     os.system('./rebound %f %f %f %f %f %f %d %s'%pars)
     name = pars[-1].split('.txt')[0]
@@ -98,15 +99,15 @@ def execute(pars):
     except:
         f = open("output/bad_sims.txt","a")
         f.write("Error simulating %s.txt. Skipped emcee.\n"%name)
+        f.close()
         print "\nError simulating %s.txt. Skipping emcee.\n"%name
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 1
-    pool = mp.Pool(processes=np.min([N_runs, 25]))
-    #runs = make_runs(N_runs)
-    runs = [(1, 1, 1, 100, 1, 1, 10, 'output/test')]
+    N_runs = 20
+    pool = mp.Pool(processes=np.min([N_runs, 10]))
+    runs = make_runs(N_runs)
     pool.map(execute, runs)
     pool.close()
     pool.join()
