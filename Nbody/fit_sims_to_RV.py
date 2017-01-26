@@ -79,7 +79,7 @@ def lnprob(theta, sim_time, sim_RVx, sim_RVy, MAP):
 
 def run_emcee(sim_time, sim_RVx, sim_RVy, MAP, filename):
     theta_ini = [1,1,np.pi]   #x_stretch, x_translate, phi (viewing angle)
-    ndim, nwalkers, n_it, n_checkpoints = len(theta_ini), 6, 20, 20
+    ndim, nwalkers, n_it, n_checkpoints = len(theta_ini), 100, 1000, 100
     pos = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(sim_time, sim_RVx, sim_RVy, MAP));
     bar = Bar('Processing', max=n_checkpoints)
@@ -111,10 +111,9 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 10
+    N_runs = 20
     pool = mp.Pool(processes=np.min([N_runs, 1]))
-    #runs = make_runs(N_runs)
-    runs = [(1, 1, 1, 1000, 1, 1, 1, 'output/test')]
+    runs = make_runs(N_runs)
     pool.map(execute, runs)
     pool.close()
     pool.join()
