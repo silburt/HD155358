@@ -10,6 +10,7 @@ import random
 import numpy as np
 import emcee
 import rebound
+from progress.bar import Bar
 
 def make_runs(N_runs):
     #draw masses from the posterior
@@ -61,8 +62,8 @@ def lnlike(theta, sim_time, sim_RVx, sim_RVy, MAP):
     sim_time = x_s*(sim_time + x_t)
     MAP_RV = sim_MAP(sim_time, MAP)
     sim_RV = sim_RVx*np.sin(phi) + sim_RVy*np.cos(phi)
-    MAP_err2 = (len(sim_time))**2           #each MAP data point has some uncertainty to it.
-    return -0.5*np.sum( (sim_RV - MAP_RV)**2/MAP_err2 + np.log(MAP_err2) )
+    #MAP_err2 = (len(sim_time))**2           #each MAP data point has some uncertainty to it.
+    return -0.5*np.sum( (sim_RV - MAP_RV)**2)#/MAP_err2 + np.log(MAP_err2) )
 
 def lnprior(theta):
     x_s, x_t, phi = theta        #x-stretch, x-translate, sinphi (viewing angle)
@@ -78,10 +79,15 @@ def lnprob(theta, sim_time, sim_RVx, sim_RVy, MAP):
 
 def run_emcee(sim_time, sim_RVx, sim_RVy, MAP, filename):
     theta_ini = [1,1,np.pi]   #x_stretch, x_translate, phi (viewing angle)
-    ndim, nwalkers, n_it = len(theta_ini), 20, 2000
+    ndim, nwalkers, n_it, n_checkpoints = len(theta_ini), 6, 20, 20
     pos = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(sim_time, sim_RVx, sim_RVy, MAP));
-    pos, _, _ = sampler.run_mcmc(pos, n_it);
+    bar = Bar('Processing', max=n_checkpoints)
+    for i in range(n_checkpoints):
+        pos, _, _ = sampler.run_mcmc(pos, n_it/n_checkpoints);
+        bar.next()
+    bar.finish()
+    #pos, _, _ = sampler.run_mcmc(pos, n_it);
     np.save(filename+".npy",sampler.chain)
 
 #main code below
@@ -105,9 +111,10 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 20
-    pool = mp.Pool(processes=np.min([N_runs, 10]))
-    runs = make_runs(N_runs)
+    N_runs = 10
+    pool = mp.Pool(processes=np.min([N_runs, 1]))
+    #runs = make_runs(N_runs)
+    runs = [(1, 1, 1, 1000, 1, 1, 1, 'output/test')]
     pool.map(execute, runs)
     pool.close()
     pool.join()
