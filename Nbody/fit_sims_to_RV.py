@@ -59,15 +59,15 @@ def sim_MAP(times,theta):
 #emcee stuff
 def lnlike(theta, sim_time, sim_RVx, sim_RVy, MAP):
     x_s, x_t, phi = theta
-    sim_time = x_s*(sim_time + x_t)
-    MAP_RV = sim_MAP(sim_time, MAP)
+    sim_time = x_s*sim_time + x_t
     sim_RV = sim_RVx*np.sin(phi) + sim_RVy*np.cos(phi)
+    MAP_RV = sim_MAP(sim_time, MAP)
     #MAP_err2 = (len(sim_time))**2           #each MAP data point has some uncertainty to it.
     return -0.5*np.sum( (sim_RV - MAP_RV)**2)#/MAP_err2 + np.log(MAP_err2) )
 
 def lnprior(theta):
     x_s, x_t, phi = theta        #x-stretch, x-translate, sinphi (viewing angle)
-    if 0<x_s<5 and 0<=x_t<400 and 0<=phi<2*np.pi:
+    if 0<x_s<5 and 0<=x_t<500 and 0<=phi<2*np.pi:
         return 0
     return -np.inf
 
@@ -75,11 +75,15 @@ def lnprob(theta, sim_time, sim_RVx, sim_RVy, MAP):
     lnp = lnprior(theta)
     if not np.isfinite(lnp):
         return -np.inf
-    return lnp + lnlike(theta, sim_time, sim_RVx, sim_RVy, MAP)
+    lnL = lnlike(theta, sim_time, sim_RVx, sim_RVy, MAP)
+    f = open('output/emcee_out.txt','a')
+    f.write('x_s=%f, x_t=%f, phi=%f, lnp=%f, lnL=%f\n'%(theta[0], theta[1], theta[2], lnp, lnL))
+    f.close()
+    return lnp + lnL
 
 def run_emcee(sim_time, sim_RVx, sim_RVy, MAP, filename):
-    theta_ini = [1,1,np.pi]   #x_stretch, x_translate, phi (viewing angle)
-    ndim, nwalkers, n_it, n_checkpoints = len(theta_ini), 100, 1000, 100
+    theta_ini = [1,30,np.pi]   #x_stretch, x_translate, phi (viewing angle)
+    ndim, nwalkers, n_it, n_checkpoints = len(theta_ini), 200, 3000, 300
     pos = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(sim_time, sim_RVx, sim_RVy, MAP));
     bar = Bar('Processing', max=n_checkpoints)
@@ -111,9 +115,10 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 20
+    N_runs = 1
     pool = mp.Pool(processes=np.min([N_runs, 1]))
-    runs = make_runs(N_runs)
+    #runs = make_runs(N_runs)
+    runs = [(0.99672170557149731, 0.87038713759372832, 0.82730589001482202, 1000.0, 5.0, 5.0, 757, 'output/taueinner_migrate1.0e+03_Kin5.0e+00_Kout5.0e+00_sd757')]
     pool.map(execute, runs)
     pool.close()
     pool.join()
