@@ -127,15 +127,15 @@ int main(int argc, char* argv[]){
         double day_to_yr2pi = 2*M_PI/365;
         double AUyr2ms = 29682.77;
         
-        double tmaxRV = 3500.0;     //*days* in the future we want to simulate
-        int nsteps = 700;
+        double tmaxRV = 60.0;     //yr/2pi into the future we want to simulate
+        int nsteps = 600;
         r->dt = (calc_a(r, 1),1.5)/100;
         
         reb_reset_function_pointers(r);
         E0 = reb_tools_energy(r);
         printf("\nGetting RV signal.\n\n");
         for(int i=0;i<nsteps;i++){
-            reb_integrate(r, tmax + i*tmaxRV/nsteps*day_to_yr2pi);
+            reb_integrate(r, tmax + i*tmaxRV/nsteps);
             double relE = fabs((reb_tools_energy(r)-E0)/E0);
             FILE* f = fopen(RVout, "a");
             fprintf(f,"%e,%e,%e,%e,%d\n",i*tmaxRV/nsteps,AUyr2ms*r->particles[0].vx*sini, AUyr2ms*r->particles[0].vy*sini,relE,r->N);

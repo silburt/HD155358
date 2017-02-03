@@ -11,7 +11,9 @@ import numpy as np
 import emcee
 import rebound
 from progress.bar import Bar
+import peakutils
 
+#############General Functions######################
 def make_runs(N_runs):
     #draw masses from the posterior
     m1 = []
@@ -41,7 +43,6 @@ def make_runs(N_runs):
 def sim_MAP(times,theta):
     m1sini,m2sini,a1,a2,h1,h2,k1,k2,lambda1,lambda2,sini = theta
     AUyr2ms = 29682.77                   #AU/(yr/2pi) -> m/s
-    dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
     mJ = 9.543e-4                        #Jupiter mass -> solar mass
     v = np.empty(0)
     sim = rebound.Simulation()
@@ -49,25 +50,60 @@ def sim_MAP(times,theta):
     sim.add(m=0.92)
     sim.add(m=m1sini*mJ/sini,a=a1,l=lambda1,h=h1,k=k1)
     sim.add(m=m2sini*mJ/sini,a=a2,l=lambda2,h=h2,k=k2)
-    sim.dt = 2*np.pi* a1**(1.5) / 25.
+    sim.dt = 2*np.pi* a1**(1.5) / 31.
     sim.move_to_com()
-    for t in times*dtoyr2pi:
-        sim.integrate(t)
+    for t in times:
+        sim.integrate(t,1)
         v = np.append(v,-AUyr2ms*sim.particles[0].vy*sini)
     return v
 
-#emcee stuff
+#Initial Value stuff (need to get close to the real solution before emcee will work)
+#############Initial Value##########################
+def get_theta_ini(time, sim_RVx, sim_RVy, MAP):
+    print "Getting initial conditions..."
+    MAP_RV = sim_MAP(time, MAP)
+    
+    #stretch factor
+    i_sim = peakutils.indexes(sim_RVy, thres=0.9) #locate successive peaks to get period
+    i_MAP = peakutils.indexes(-1*MAP_RV, thres=0.9)
+    P_sim = time[i_sim[1]] - time[i_sim[0]]
+    P_MAP = time[i_MAP[1]] - time[i_MAP[0]]
+    xs = P_MAP/P_sim
+
+    #phi
+    MSE_phi = []   #mean squred error of max peak values + min peak values
+    phi_angles = np.linspace(0,2*np.pi,50)
+    for p in phi_angles:
+        sim_RV = sim_RVx*np.sin(p) + sim_RVy*np.cos(p)
+        MSE_phi.append( (np.max(sim_RV)-np.max(MAP_RV))**2 + (np.min(sim_RV)-np.min(MAP_RV))**2 )
+    MSE_phi = np.asarray(MSE_phi)
+    phi = phi_angles[MSE_phi == np.min(MSE_phi)][0]
+
+    #translation factor
+    xt_vals = np.linspace(-P_MAP/2,P_MAP/2,20, endpoint=False)
+    MSE_xt = []
+    for tl in xt_vals:
+        sim_time = xs*time + tl
+        MAP_RV = sim_MAP(sim_time, MAP)
+        sim_RV = sim_RVx*np.sin(phi) + sim_RVy*np.cos(phi)
+        MSE_xt.append( np.sum((MAP_RV - sim_RV)**2) )
+    MSE_xt = np.asarray(MSE_xt)
+    xt = xt_vals[MSE_xt == np.min(MSE_xt)][0]
+    return (xs, xt, phi)
+
+#############emcee stuff############################
 def lnlike(theta, sim_time, sim_RVx, sim_RVy, MAP):
     x_s, x_t, phi = theta
     sim_time = x_s*sim_time + x_t
     sim_RV = sim_RVx*np.sin(phi) + sim_RVy*np.cos(phi)
     MAP_RV = sim_MAP(sim_time, MAP)
     #MAP_err2 = (len(sim_time))**2           #each MAP data point has some uncertainty to it.
-    return -0.5*np.sum( (sim_RV - MAP_RV)**2)#/MAP_err2 + np.log(MAP_err2) )
+    #return -0.5*np.sum( (sim_RV - MAP_RV)**2/MAP_err2 + np.log(MAP_err2) )
+    return -0.5*np.sum( (sim_RV - MAP_RV)**2 )
 
 def lnprior(theta):
     x_s, x_t, phi = theta        #x-stretch, x-translate, sinphi (viewing angle)
-    if 0<x_s<5 and 0<=x_t<500 and 0<=phi<2*np.pi:
+    if 0.5<x_s<2.5 and -5<x_t<5 and 0<=phi<2*np.pi:
         return 0
     return -np.inf
 
@@ -82,19 +118,19 @@ def lnprob(theta, sim_time, sim_RVx, sim_RVy, MAP):
     return lnp + lnL
 
 def run_emcee(sim_time, sim_RVx, sim_RVy, MAP, filename):
-    theta_ini = [1,30,np.pi]   #x_stretch, x_translate, phi (viewing angle)
-    ndim, nwalkers, n_it, n_checkpoints = len(theta_ini), 200, 3000, 300
+    theta_ini = get_theta_ini(sim_time, sim_RVx, sim_RVy, MAP) #[1,30,np.pi]   #x_stretch, x_translate, phi (viewing angle)
+    ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 50, 200, 100
     pos = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(sim_time, sim_RVx, sim_RVy, MAP));
-    bar = Bar('Processing', max=n_checkpoints)
-    for i in range(n_checkpoints):
-        pos, _, _ = sampler.run_mcmc(pos, n_it/n_checkpoints);
+    bar = Bar('Processing', max=bar_checkpoints)
+    for i in range(bar_checkpoints):
+        pos, _, _ = sampler.run_mcmc(pos, n_it/bar_checkpoints);
         bar.next()
     bar.finish()
-    #pos, _, _ = sampler.run_mcmc(pos, n_it);
     np.save(filename+".npy",sampler.chain)
 
-#main code below
+####################################################
+#############Main Code##############################
 samples = np.load('../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy')[:,1000:,:].reshape((-1, 13))
 MAPP = np.percentile(samples, 50, axis=0)[:-2]
 
