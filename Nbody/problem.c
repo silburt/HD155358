@@ -114,15 +114,20 @@ int main(int argc, char* argv[]){
     
     //naming
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*"); system(syss);
-    char binary[100] = {0}; strcat(binary,output_name); strcat(binary,".bin");
-    char RVout[120] = {0}; strcat(RVout, output_name); strcat(RVout, "_RV.txt");
+    char binary[120] = {0}; strcat(binary,output_name); strcat(binary,".bin");
+    //char RVout[120] = {0}; strcat(RVout, output_name); strcat(RVout, "_RV.txt");
     
     strcat(output_name,".txt");
     
     // Integrate!
     reb_integrate(r, tmax);
     
-    //Get RV signal
+    if(get_RV && (r->N == 3)){
+        reb_output_binary(r, binary);
+    }
+    
+    //old Get RV signal
+    /*
     if(get_RV && (r->N == 3)){
         double day_to_yr2pi = 2*M_PI/365;
         double AUyr2ms = 29682.77;
@@ -144,7 +149,7 @@ int main(int argc, char* argv[]){
             reb_output_timing(r, 0);
             printf("%e",relE);
         }
-    }
+    }*/
 
     //int binary_out = 0;
     //if(binary_out) reb_output_binary(r, binary);
