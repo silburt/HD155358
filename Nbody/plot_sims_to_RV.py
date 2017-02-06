@@ -22,7 +22,7 @@ def get_simRV(filename, time_sim, phi):
 
 #args
 dir = sys.argv[1]
-plot_corner = 0
+plot_corner = 1
 
 #main code
 files = glob.glob(dir+'*.npy')
@@ -45,7 +45,6 @@ for f in files:
 
     plt.legend(loc='upper left', fontsize=8, numpoints=1)
     simRV = get_simRV(name, (t - x_t)/x_s, phi) + offset
-    print (t - x_t)/x_s
     lnL = -0.5*np.sum( (simRV - data['RV'])**2/(data['Unc']**2 + jitter2) + np.log(data['Unc']**2 + jitter2) )
     plt.title('-lnL = %f'%lnL)
     plt.savefig(name+".png")

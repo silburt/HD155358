@@ -61,7 +61,7 @@ def lnlike(theta, filename, time_RV, data_RV, err2_RV):
 
 def lnprior(theta):
     x_s, x_t, phi, jitter2, offset = theta        #x-stretch, x-translate, phi (viewing angle), jitter2, RV offset
-    if 0.5<x_s<2.5 and -600<x_t<0 and 0<=phi<2*np.pi and 0.<jitter2<500. and -40<offset<40:
+    if 0.5<x_s<2.5 and -600<x_t<0 and 0<=phi<2*np.pi and 0.<jitter2<70. and -40<offset<40:
         return 0
     return -np.inf
 
@@ -77,15 +77,21 @@ def lnprob(theta, filename, time_RV, data_RV, err2_RV):
 
 def run_emcee(filename, time_RV, data_RV, err2_RV):
     theta_ini = [1.5,0,np.pi,10,4]
-    ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 26, 2000, 100
-    pos = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+    ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 50, 2000, 100
+    p0 = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(filename, time_RV, data_RV, err2_RV));
-    bar = Bar('Processing', max=bar_checkpoints)
+    print("Running burn-in...")
+    p0, lnp, _ = sampler.run_mcmc(p0, 200)
+    p = p0[np.argmax(lnp)]
+    sampler.reset()
+    # Re-sample the walkers near the best walker from the previous burn-in.
+    pos = [p + 1e-8 * np.random.randn(ndim) for i in xrange(nwalkers)]
+    bar = Bar("Running Production", max=bar_checkpoints)
     for i in range(bar_checkpoints):
         pos, _, _ = sampler.run_mcmc(pos, n_it/bar_checkpoints);
         bar.next()
     bar.finish()
-    np.save(filename+".npy",sampler.chain)
+    np.save(filename+'.npy',sampler.chain)
 
 ####################################################
 #############Main Code##############################
@@ -102,7 +108,7 @@ def execute(pars):
         time_RV, data_RV, err2_RV = data['BJD'] - data['BJD'][0], data['RV'], data['Unc']**2
         run_emcee(name, time_RV, data_RV, err2_RV)
     except:
-        f = open("output/bad_sims.txt","a")
+        f = open('output/bad_sims.txt','a')
         f.write("Error simulating %s.txt. Skipped emcee.\n"%name)
         f.close()
         print "\nError simulating %s.txt. Skipping emcee.\n"%name
