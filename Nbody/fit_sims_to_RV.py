@@ -41,27 +41,26 @@ def make_runs(N_runs):
     return runs
 
 def get_simRV(filename, time_sim, phi):
-    dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
     AUyr2ms = 29682.77                   #AU/(yr/2pi) -> m/s
     sim = rebound.Simulation.from_file(filename+'.bin')
     tmax = sim.t
     rv = np.empty(0)
-    for t in time_sim*dtoyr2pi:
+    for t in time_sim:
         sim.integrate(t+tmax,1)
-        rv = np.append(rv,AUyr2ms*(sim.particles[0].vx*np.sin(phi) + sim.particles[0].vy*np.cos(phi)))
+        rv = np.append(rv,AUyr2ms*( sim.particles[0].vx*np.sin(phi) + sim.particles[0].vy*np.cos(phi) ))
     del sim
     return rv
 
 #############emcee stuff############################
-def lnlike(theta, filename, time_RV, data_RV, err2_RV):
+def lnlike(theta, filename, timeRV, dataRV, err2RV):
     x_s, x_t, phi, jitter2, offset = theta
-    time_sim = (time_RV - x_t)/x_s
-    sim_RV = get_simRV(filename, time_sim, phi) + offset
-    return -0.5*np.sum( (sim_RV - data_RV)**2/(err2_RV + jitter2) + np.log(err2_RV + jitter2) )
+    timesim = (timeRV + x_t)/x_s
+    simRV = get_simRV(filename, timesim, phi) + offset
+    return -0.5*np.sum( (simRV - dataRV)**2/(err2RV + jitter2) + np.log(err2RV + jitter2) )
 
 def lnprior(theta):
     x_s, x_t, phi, jitter2, offset = theta        #x-stretch, x-translate, phi (viewing angle), jitter2, RV offset
-    if 0.5<x_s<2.5 and -600<x_t<0 and 0<=phi<2*np.pi and 0.<jitter2<70. and -40<offset<40:
+    if 0.5<x_s<2.5 and 0<x_t<600 and 0<=phi<2*np.pi and 0.<jitter2<20. and -40<offset<40:
         return 0
     return -np.inf
 
@@ -70,13 +69,10 @@ def lnprob(theta, filename, time_RV, data_RV, err2_RV):
     if not np.isfinite(lnp):
         return -np.inf
     lnL = lnlike(theta, filename, time_RV, data_RV, err2_RV)
-#    f = open('output/emcee_out.txt','a')
-#    f.write('x_s=%f \t x_t=%f \t phi=%f \t j2=%f \t off=%f \t lnp=%f, lnL=%f\n'%(theta[0],theta[1],theta[2],theta[3],theta[4],lnp, lnL))
-#    f.close()
     return lnp + lnL
 
 def run_emcee(filename, time_RV, data_RV, err2_RV):
-    theta_ini = [1.5,0,np.pi,10,4]
+    theta_ini = [1.5,0,np.pi,10,4]  #x_stretch, x_translate, phi, jitter2, offset
     ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 50, 2000, 100
     p0 = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(filename, time_RV, data_RV, err2_RV));
@@ -104,8 +100,9 @@ def execute(pars):
     name = pars[-1].split('.txt')[0]
     try:
         print "\nPerforming MCMC fit."
+        dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
         data = pd.read_csv('../RV.txt', delimiter=' ')
-        time_RV, data_RV, err2_RV = data['BJD'] - data['BJD'][0], data['RV'], data['Unc']**2
+        time_RV, data_RV, err2_RV = (data['BJD']-data['BJD'][0])*dtoyr2pi, data['RV'], data['Unc']**2
         run_emcee(name, time_RV, data_RV, err2_RV)
     except:
         f = open('output/bad_sims.txt','a')
@@ -116,11 +113,17 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 20
-    pool = mp.Pool(processes=np.min([N_runs, 2]))
+    N_runs = 200
+    pool = mp.Pool(processes=np.min([N_runs, 5]))
     runs = make_runs(N_runs)
     #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 2000.0, 1.0, 0.1, 646, 'output/taueinner_migrate1.0e+03_Kin1.0_Kout1.0_sd646')]
     #runs = [(0.99672170557149731, 0.87038713759372832, 0.82730589001482202, 1000.0, 5.0, 5.0, 757, 'output/taueinner_migrate1.0e+03_Kin5.0e+00_Kout5.0e+00_sd757')]
     pool.map(execute, runs)
     pool.close()
     pool.join()
+
+
+#extra code
+#f = open('output/emcee_out.txt','a')
+#f.write('x_s=%f \t x_t=%f \t phi=%f \t j2=%f \t off=%f \t errterm=%f, chiterm,noj2=%f, chiterm,j2=%f\n'%(x_s,x_t,phi,j2,offset, -np.sum(np.log(err2RV + j2)), -np.sum((simRV - dataRV)**2/(err2RV)), -np.sum((simRV - dataRV)**2/(err2RV + j2))))
+#f.close()
