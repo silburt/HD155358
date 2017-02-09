@@ -30,7 +30,7 @@ def make_runs(N_runs):
     #make N_runs for simulation
     random.seed()
     runs = []
-    mig_rate = random.sample(np.round(np.logspace(2,4,N_runs)), N_runs)
+    mig_rate = random.sample(np.round(np.logspace(2,4.5,N_runs)), N_runs)
     K1 = random.sample(np.logspace(-1,2,N_runs), N_runs)
     K2 = np.logspace(-1,2,N_runs)
     path = 'output/'
@@ -53,14 +53,14 @@ def get_simRV(filename, time_sim, phi):
 
 #############emcee stuff############################
 def lnlike(theta, filename, timeRV, dataRV, err2RV):
-    x_s, x_t, phi, jitter2, offset = theta
+    x_s, x_t, y_s, y_t, phi, jitter2 = theta
     timesim = (timeRV + x_t)/x_s
-    simRV = get_simRV(filename, timesim, phi) + offset
+    simRV = y_s*get_simRV(filename, timesim, phi) + y_t
     return -0.5*np.sum( (simRV - dataRV)**2/(err2RV + jitter2) + np.log(err2RV + jitter2) )
 
 def lnprior(theta):
-    x_s, x_t, phi, jitter2, offset = theta        #x-stretch, x-translate, phi (viewing angle), jitter2, RV offset
-    if 0.5<x_s<2.5 and 0<x_t<600 and 0<=phi<2*np.pi and 0.<jitter2<20. and -40<offset<40:
+    x_s, x_t, y_s, y_t, phi, jitter2 = theta        #x-stretch, x-translate, y-stretch, phi (viewing angle), jitter2, RV offset
+    if 0.5<x_s<2.5 and 0<x_t<600 and 0.25<y_s<4 and -40<y_t<40 and 0<=phi<2*np.pi and 0.<jitter2<20.:
         return 0
     return -np.inf
 
@@ -72,7 +72,7 @@ def lnprob(theta, filename, time_RV, data_RV, err2_RV):
     return lnp + lnL
 
 def run_emcee(filename, time_RV, data_RV, err2_RV):
-    theta_ini = [1.5,0,np.pi,10,4]  #x_stretch, x_translate, phi, jitter2, offset
+    theta_ini = [1.5,0,1,4,np.pi,10]  #x_stretch, x_translate, y_stretch, y_translate, phi, jitter2
     ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 50, 2000, 100
     p0 = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(filename, time_RV, data_RV, err2_RV));

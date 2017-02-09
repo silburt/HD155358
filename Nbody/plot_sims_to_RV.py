@@ -23,14 +23,14 @@ def get_simRV(filename, time_sim, phi):
 dir = sys.argv[1]
 plot_corner = 0
 
-fig = plt.figure(figsize=(11,6))
-
 #main code
 dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
 files = glob.glob(dir+'*.npy')
 data = pd.read_csv('../RV.txt', delimiter=' ')
 time_RV, data_RV, err_RV = (data['BJD']-data['BJD'][0])*dtoyr2pi, data['RV'], data['Unc']
-for f in files:
+print "analyzing %d files"%(len(files))
+for i,f in enumerate(files):
+    fig = plt.figure(figsize=(11,6))
     name = f.split('.npy')[0]
     sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, 5))
     sim_MAP = np.percentile(sim_samples, 50, axis=0)
@@ -47,19 +47,28 @@ for f in files:
     timesfull = times*x_s - x_t
     axes.plot(timesfull[timesfull<(time_RV.iloc[-1]+1)], simRVfull[timesfull<(time_RV.iloc[-1]+1)], color='red', lw=0.5, label='full sim curve')
     axes.legend(loc='upper left', fontsize=8, numpoints=1)
-    lnL = -0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
+    lnL = 0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
     axes.set_ylabel('RV (m/s)')
-    axes.set_title('-lnL = %f'%lnL)
+    axes.set_title('lnL = %f'%lnL)
     
     axes = fig.add_subplot(2, 1, 2, sharex=axes)
     axes.errorbar(time_RV, simRV - data_RV, yerr=err_RV, fmt='.')
     axes.plot([time_RV.iloc[0],time_RV.iloc[-1]+1], [0,0], 'k--')
     axes.set_xlabel('time')
     axes.set_ylabel('residuals (m/s)')
-    plt.savefig(name+".png")
-    plt.clf()
+    if lnL < 1000:
+        dir = name.split('/')
+        plt.savefig("%s/%s/good_ones/%s.png"%(dir[0],dir[1],dir[2]))
+        fig = corner.corner(sim_samples, labels=["x_s", "x_t", "phi", "jitter2", "offset"])
+        fig.savefig("%s/%s/good_ones/%s_corner.png"%(dir[0],dir[1],dir[2]))
+        plt.close(fig)
+    else:
+        plt.savefig("%s.png"%name)
+    plt.close()
 
     if plot_corner == 1:
         fig = corner.corner(sim_samples, labels=["x_s", "x_t", "phi", "jitter2", "offset"])
         fig.savefig(name+"_corner.png")
         plt.close(fig)
+
+    print i
