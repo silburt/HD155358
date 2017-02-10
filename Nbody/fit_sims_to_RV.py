@@ -30,9 +30,9 @@ def make_runs(N_runs):
     #make N_runs for simulation
     random.seed()
     runs = []
-    mig_rate = random.sample(np.round(np.logspace(2,4.5,N_runs)), N_runs)
-    K1 = random.sample(np.logspace(-1,2,N_runs), N_runs)
-    K2 = np.logspace(-1,2,N_runs)
+    mig_rate = random.sample(np.round(np.logspace(2,5,10*N_runs)), N_runs)
+    K1 = random.sample(np.logspace(-1,2,10*N_runs), N_runs)
+    K2 = random.sample(np.logspace(-1,2,10*N_runs), N_runs)
     path = 'output/'
     for i in xrange(0,N_runs):
         seed = int(1000*random.random())
@@ -60,7 +60,7 @@ def lnlike(theta, filename, timeRV, dataRV, err2RV):
 
 def lnprior(theta):
     x_s, x_t, y_s, y_t, phi, jitter2 = theta        #x-stretch, x-translate, y-stretch, phi (viewing angle), jitter2, RV offset
-    if 0.5<x_s<2.5 and 0<x_t<600 and 0.25<y_s<4 and -40<y_t<40 and 0<=phi<2*np.pi and 0.<jitter2<20.:
+    if 0.5<x_s<2.5 and 0<x_t<600 and 0.25<y_s<4 and -40<y_t<40 and 0<=phi<2*np.pi and 0.<jitter2<60.:
         return 0
     return -np.inf
 
@@ -113,7 +113,7 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 200
+    N_runs = 300
     pool = mp.Pool(processes=np.min([N_runs, 5]))
     runs = make_runs(N_runs)
     #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 2000.0, 1.0, 0.1, 646, 'output/taueinner_migrate1.0e+03_Kin1.0_Kout1.0_sd646')]
