@@ -30,7 +30,7 @@ def make_runs(N_runs):
     #make N_runs for simulation
     random.seed()
     runs = []
-    mig_rate = random.sample(np.round(np.logspace(2,5,10*N_runs)), N_runs)
+    mig_rate = random.sample(np.round(np.logspace(2.5,5,10*N_runs)), N_runs)
     K1 = random.sample(np.logspace(-1,2,10*N_runs), N_runs)
     K2 = random.sample(np.logspace(-1,2,10*N_runs), N_runs)
     path = 'output/'
@@ -98,26 +98,27 @@ MAPP = np.percentile(samples, 50, axis=0)[:-2]
 def execute(pars):
     os.system('./rebound %f %f %f %f %f %f %d %s'%pars)
     name = pars[-1].split('.txt')[0]
-    try:
-        print "\nPerforming MCMC fit."
-        dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
-        data = pd.read_csv('../RV.txt', delimiter=' ')
-        time_RV, data_RV, err2_RV = (data['BJD']-data['BJD'][0])*dtoyr2pi, data['RV'], data['Unc']**2
-        run_emcee(name, time_RV, data_RV, err2_RV)
-    except:
-        f = open('output/bad_sims.txt','a')
-        f.write("Error simulating %s.txt. Skipped emcee.\n"%name)
-        f.close()
-        print "\nError simulating %s.txt. Skipping emcee.\n"%name
+#    try:
+#        print "\nPerforming MCMC fit."
+#        dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
+#        data = pd.read_csv('../RV.txt', delimiter=' ')
+#        time_RV, data_RV, err2_RV = (data['BJD']-data['BJD'][0])*dtoyr2pi, data['RV'], data['Unc']**2
+#        run_emcee(name, time_RV, data_RV, err2_RV)
+#    except:
+#        f = open('output/bad_sims.txt','a')
+#        f.write("Error simulating %s.txt. Skipped emcee.\n"%name)
+#        f.close()
+#        print "\nError simulating %s.txt. Skipping emcee.\n"%name
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 300
+    N_runs = 200
     pool = mp.Pool(processes=np.min([N_runs, 5]))
     runs = make_runs(N_runs)
-    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 2000.0, 1.0, 0.1, 646, 'output/taueinner_migrate1.0e+03_Kin1.0_Kout1.0_sd646')]
-    #runs = [(0.99672170557149731, 0.87038713759372832, 0.82730589001482202, 1000.0, 5.0, 5.0, 757, 'output/taueinner_migrate1.0e+03_Kin5.0e+00_Kout5.0e+00_sd757')]
+    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 100000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
+    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 5.0, 5.0, 646, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd646')]
+    #runs = [(0.99672170557149731, 0.87038713759372832, 0.82730589001482202, 10000.0, 10, 10, 757, 'output/taueinner_migrate1.0e+03_Kin5.0e+00_Kout5.0e+00_sd757')]
     pool.map(execute, runs)
     pool.close()
     pool.join()

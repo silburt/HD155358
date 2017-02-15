@@ -57,7 +57,7 @@ for i,f in enumerate(files):
     axes.plot([time_RV.iloc[0],time_RV.iloc[-1]+1], [0,0], 'k--')
     axes.set_xlabel('time')
     axes.set_ylabel('residuals (m/s)')
-    if lnL < 500 and jitter2 < 20:
+    if lnL < 500 and jitter2 < 18:
         dir = name.split('/')
         plt.savefig("%s/%s/good_ones/%s.png"%(dir[0],dir[1],dir[2]))
         fig = corner.corner(sim_samples, labels=["x_s", "x_t", "y_s", "y_t", "phi", "jitter2"])

@@ -14,12 +14,14 @@
 #include <string.h>
 #include "rebound.h"
 #include <time.h>
+#define MAX(a, b) ((a) < (b) ? (b) : (a))       ///< Returns the maximum of a and b
 
 void heartbeat(struct reb_simulation* r);
 void heartbeat_getRV(struct reb_simulation* r);
 void migration_forces(struct reb_simulation* r);
 void calc_resonant_angles(struct reb_simulation* r, FILE* f);
 double calc_a(struct reb_simulation* r, int index);
+double calc_P(struct reb_simulation* r, int index);
 
 double E0;
 char output_name[100] = {0};
@@ -30,7 +32,8 @@ double* omega;
 double* lambda;
 double* a;
 double* e;
-double mig_time, dispersal_time, mig_rate, output_rate, K1, K2;
+double mig_time, dispersal_time, dispersal_rate, mig_rate, K1, K2, dispersal_fac;
+int mig_index, print_disk_dispersal=0;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
@@ -53,17 +56,9 @@ int main(int argc, char* argv[]){
     r->force_is_velocity_dependent = 1;
     
     // Boundaries
-    r->boundary	= REB_BOUNDARY_OPEN;
-    const double boxsize = 5;
-    reb_configure_box(r,boxsize,2,2,1);
-    
-    //Migration parameters
-    mig_time = mig_rate*4;
-    dispersal_time = mig_time;
-    
-    double tmax = mig_time + 2*dispersal_time;
-    double n_output = 5000;
-    output_rate = tmax/n_output;
+    //r->boundary	= REB_BOUNDARY_OPEN;
+    //const double boxsize = 30;
+    //reb_configure_box(r,boxsize,2,2,1);
     
 	// Star
 	struct reb_particle star = {0};
@@ -73,8 +68,11 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
     
     double mJ = 0.00095424836;  //mass of Jupiter
-    double a1 = 0.641;
-    r->dt = 2*M_PI*pow(a1,1.5)/50;
+    //double a1 = 0.6, a2=1.02;
+    //double a1 = 6, a2=11;
+    double a1 = 2, a2=4;
+    //double a1=1, a2=10;
+    r->dt = 2*M_PI*sqrt(a1*a1*a1/star.m)/50;
     // Planet 1
     {
         double a=a1, m=m1*mJ/sini, inc=reb_random_normal(0.00001);
@@ -87,10 +85,9 @@ int main(int argc, char* argv[]){
     
     //Planet 2
     {
-        double a_offset = 0.02;
-        double a=1.02, m=m2*mJ/sini, inc=reb_random_normal(0.00001);
+        double a=a2, m=m2*mJ/sini, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
-        p = reb_tools_orbit_to_particle(r->G, star, m, a+a_offset, 0, inc, 0, 0, reb_random_uniform(0,2.*M_PI));
+        p = reb_tools_orbit_to_particle(r->G, star, m, a, 0, inc, 0, 0, reb_random_uniform(0,2.*M_PI));
         p.r = 0.000467;
         p.hash = r->N;
         reb_add(r, p);
@@ -99,11 +96,28 @@ int main(int argc, char* argv[]){
     r->N_active = r->N;
     
     //migration stuff
+    //mig_time = mig_rate*4;
+    //dispersal_time = mig_time;
+    
+    //Migration times and rates
+    mig_index = 2;                                                          //index of migrating planet
+    mig_time = MAX(12*mig_rate,1e3*calc_P(r,1));                             //migration time
+    //dispersal_time = 2e2*calc_P(r,1);                                       //1e4 orbital periods of inner planet
+    dispersal_time = mig_time;                                              //dispersal time of prot. planet disk
+    dispersal_rate = pow(1e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));  //rate of disk dispersal
+    dispersal_fac = 1;
+    double tmax = 2*mig_time + dispersal_time;
+    
+    //Migraiton arrays
     tau_a = calloc(sizeof(double),r->N);
     tau_e = calloc(sizeof(double),r->N);
-    tau_a[2] = 2.*M_PI*mig_rate;
-    tau_e[1] = 2.*M_PI*mig_rate/K1;
-    tau_e[2] = 2.*M_PI*mig_rate/K2;
+    tau_a[mig_index] = 2.*M_PI*mig_rate/sqrt(calc_a(r,mig_index));  //tau_a = a/dot(a), scale-free
+    tau_e[1] = tau_a[mig_index]/K1;                                 //tau_e = e/dot(e)
+    tau_e[2] = tau_a[mig_index]/K2;
+    printf("\nmig_time=%e, dispersal_time=%e, dispersal_rate=%.10e\n",mig_time,dispersal_time,dispersal_rate);
+    printf("\ntau_a=%e, tau_e1=%e, tau_e2=%e\n",tau_a[mig_index],tau_e[1],tau_e[2]);
+    
+    //Other arrays
     a = calloc(sizeof(double),r->N);
     e = calloc(sizeof(double),r->N);
     omega = calloc(sizeof(double),r->N);
@@ -125,42 +139,14 @@ int main(int argc, char* argv[]){
     if(get_RV && (r->N == 3)){
         reb_output_binary(r, binary);
     }
-    
-    //old Get RV signal
-    /*
-    if(get_RV && (r->N == 3)){
-        double day_to_yr2pi = 2*M_PI/365;
-        double AUyr2ms = 29682.77;
-        
-        double tmaxRV = 60.0;     //yr/2pi into the future we want to simulate
-        int nsteps = 600;
-        r->dt = (calc_a(r, 1),1.5)/100;
-        
-        reb_reset_function_pointers(r);
-        E0 = reb_tools_energy(r);
-        printf("\nGetting RV signal.\n\n");
-        for(int i=0;i<nsteps;i++){
-            reb_integrate(r, tmax + i*tmaxRV/nsteps);
-            double relE = fabs((reb_tools_energy(r)-E0)/E0);
-            FILE* f = fopen(RVout, "a");
-            fprintf(f,"%e,%e,%e,%e,%d\n",i*tmaxRV/nsteps,AUyr2ms*r->particles[0].vx*sini, AUyr2ms*r->particles[0].vy*sini,relE,r->N);
-            fclose(f);
-            
-            reb_output_timing(r, 0);
-            printf("%e",relE);
-        }
-    }*/
-
-    //int binary_out = 0;
-    //if(binary_out) reb_output_binary(r, binary);
-    //printf("\nSimulation complete.\n\n");
 
 }
 
-double tout = 0;
+double tout = 10;
 void heartbeat(struct reb_simulation* r){
     if (tout <r->t){
-        tout += output_rate;
+        //tout *= 1.01;
+        tout += 25;
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         int N_mini = 0;
@@ -169,7 +155,7 @@ void heartbeat(struct reb_simulation* r){
         }
         
         FILE* f = fopen(output_name, "a");
-        fprintf(f,"%e,%e,%d,%e,%e,%e,",r->t,relE,r->N,mig_rate,K1,K2);
+        fprintf(f,"%e,%e,%d,%e,%e,%e,%e,%e,",r->t,relE,r->N,mig_rate,K1,K2,mig_time,dispersal_time+mig_time);
         calc_resonant_angles(r,f);
         fclose(f);
     }
@@ -179,6 +165,12 @@ void heartbeat(struct reb_simulation* r){
         double relE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("%e",relE);
+    }
+    
+    //double check timestep
+    if(r->dt > calc_P(r,1)/30){
+        r->dt /= 4;
+        printf("\nreduced timestep\n");
     }
 }
 
@@ -229,7 +221,7 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     while(phi3 >= 2*M_PI) phi3 -= 2*M_PI;
     while(phi3 < 0.) phi3 += 2*M_PI;
     
-    fprintf(f,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3,r->particles[1].m,r->particles[2].m,tau_a[1],tau_e[1],tau_a[2],tau_e[2]);
+    fprintf(f,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3,r->particles[1].m,r->particles[2].m,tau_a[1]*a[mig_index],tau_e[1]*a[mig_index],tau_a[2]*a[mig_index],tau_e[2]*a[mig_index]);
     
 }
 
@@ -253,14 +245,14 @@ double calc_a(struct reb_simulation* r, int index){
     return a;
 }
 
+double calc_P(struct reb_simulation* r, int index){
+    double a = calc_a(r, index);
+    double Ms = r->particles[0].m;
+    return 2*M_PI*sqrt(a*a*a/Ms);  //units of yr/2pi
+}
+
 void migration_forces(struct reb_simulation* r){
     if(r->t < (mig_time + dispersal_time)){
-        if(r->t > mig_time){
-            double fac = pow(1e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));
-            tau_a[2] *= fac;
-            tau_e[2] *= fac;
-            tau_e[1] *= fac;
-        }
         const double G = r->G;
         const int N = r->N;
         struct reb_particle* const particles = r->particles;
@@ -295,7 +287,7 @@ void migration_forces(struct reb_simulation* r){
                     const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
                     const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
                     const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
-                    const double a = -mu/( v*v - 2.*mu/r );			// semi major axis
+                    const double a = -mu/( v*v - 2.*mu/r );             // semi major axis
                     const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
                     const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
                     p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
@@ -305,5 +297,56 @@ void migration_forces(struct reb_simulation* r){
             }
             com = reb_get_com_of_pair(com,particles[i]);
         }
+        
+        //update migration rate to keep scale-free
+        tau_a[mig_index] = 2.*M_PI*mig_rate/sqrt(calc_a(r,mig_index));
+        tau_e[1] = tau_a[mig_index]/K1;
+        tau_e[2] = tau_a[mig_index]/K2;
+        
+        //disk_dispersal
+        if(r->t > mig_time){
+            if(print_disk_dispersal == 0){
+                printf("\n **Disk Dispersal Started**\n");
+                print_disk_dispersal = 1;
+            }
+            dispersal_fac *= dispersal_rate;
+            tau_a[mig_index] *= dispersal_fac;
+            tau_e[1] *= dispersal_fac;
+            tau_e[2] *= dispersal_fac;
+            //tau_e[2] = -tau_a[2]/K2;
+            //tau_e[1] = -tau_a[2]/K1;
+        }
+    } else if (print_disk_dispersal==1){
+        printf("\n **Disk Dispersal Finished**\n");
+        print_disk_dispersal = 2;
     }
 }
+
+//old Get RV signal
+/*
+ if(get_RV && (r->N == 3)){
+ double day_to_yr2pi = 2*M_PI/365;
+ double AUyr2ms = 29682.77;
+ 
+ double tmaxRV = 60.0;     //yr/2pi into the future we want to simulate
+ int nsteps = 600;
+ r->dt = (calc_a(r, 1),1.5)/100;
+ 
+ reb_reset_function_pointers(r);
+ E0 = reb_tools_energy(r);
+ printf("\nGetting RV signal.\n\n");
+ for(int i=0;i<nsteps;i++){
+ reb_integrate(r, tmax + i*tmaxRV/nsteps);
+ double relE = fabs((reb_tools_energy(r)-E0)/E0);
+ FILE* f = fopen(RVout, "a");
+ fprintf(f,"%e,%e,%e,%e,%d\n",i*tmaxRV/nsteps,AUyr2ms*r->particles[0].vx*sini, AUyr2ms*r->particles[0].vy*sini,relE,r->N);
+ fclose(f);
+ 
+ reb_output_timing(r, 0);
+ printf("%e",relE);
+ }
+ }*/
+
+//int binary_out = 0;
+//if(binary_out) reb_output_binary(r, binary);
+//printf("\nSimulation complete.\n\n");
