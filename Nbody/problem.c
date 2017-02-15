@@ -69,9 +69,7 @@ int main(int argc, char* argv[]){
     
     double mJ = 0.00095424836;  //mass of Jupiter
     //double a1 = 0.6, a2=1.02;
-    //double a1 = 6, a2=11;
     double a1 = 1, a2=1.8;
-    //double a1=1, a2=10;
     r->dt = 2*M_PI*sqrt(a1*a1*a1/star.m)/50;
     // Planet 1
     {
@@ -95,18 +93,13 @@ int main(int argc, char* argv[]){
     
     r->N_active = r->N;
     
-    //migration stuff
-    //mig_time = mig_rate*4;
-    //dispersal_time = mig_time;
-    
     //Migration times and rates
     mig_index = 2;                                                          //index of migrating planet
     mig_time = MAX(3*mig_rate,1e3*calc_P(r,1));                             //migration time
-    //dispersal_time = mig_time;                                              //1e4 orbital periods of inner planet
-    dispersal_time = 0;                                              //dispersal time of prot. planet disk
+    dispersal_time = mig_time;                                              //1e4 orbital periods of inner planet
     dispersal_rate = pow(5e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));  //rate of disk dispersal
     dispersal_fac = 1;
-    double tmax = 2*mig_time + dispersal_time;
+    double tmax = 1.5*mig_time + dispersal_time;
     
     //Migraiton arrays
     tau_a = calloc(sizeof(double),r->N);
