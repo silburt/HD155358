@@ -22,7 +22,7 @@ time /= P1
 
 #plot
 axes[0].plot(time, phi1, '.', ms=ms, markeredgecolor='none', label='phi 1')
-axes[0].plot(time, phi2, '.', ms=ms, markeredgecolor='none', label='phi 2')
+axes[0].plot(time, phi2, '.', ms=ms, markeredgecolor='none', alpha=0.2, label='phi 2')
 #axes[0].plot(time, phi3, '.', ms=ms, markeredgecolor='none', label='phi 3')
 #axes[0].plot(time, dE,'o',ms=ms, markeredgecolor='none')
 axes[1].plot(time, a1, 'o', ms=ms, markeredgecolor='none')
@@ -32,12 +32,13 @@ axes[3].plot(time, e1, 'o', ms=ms, markeredgecolor='none', label='planet 1')
 axes[3].plot(time, e2, 'o', ms=ms, markeredgecolor='none', label='planet 2')
 
 P2 = a2**1.5
-axes[4].plot(time, taue1/P2, 'o', ms=2*ms, color='black', markeredgecolor='none', label='taue planet 1')
-axes[4].plot(time, taue2/P2, 'o', ms=ms, color='green', markeredgecolor='none', label='taue planet 2')
-axes[4].plot(time, taua2/P2, 'o', ms=ms/3, color='red', markeredgecolor='none', label='taua planet 1')
+axes[4].plot(time, taue1/P2, 'o', ms=2*ms, color='black', markeredgecolor='none', label='tau_e1')
+axes[4].plot(time, taue2/P2, 'o', ms=ms, color='green', markeredgecolor='none', label='tau_e2')
+axes[4].plot(time, taua2/P2, 'o', ms=ms/3, color='red', markeredgecolor='none', label='tau_a1 ')
 axes[4].set_yscale('log')
+axes[4].legend(loc='upper left', fontsize=10)
 
-plot_bounds = 0
+plot_bounds = 1
 if plot_bounds == 1:
     mig_time = migtime[0]/P1
     D_T = DT[0]/P1
