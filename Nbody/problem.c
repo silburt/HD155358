@@ -269,16 +269,15 @@ void migration_forces(struct reb_simulation* r){
                     const double dy = p->y-com.y;
                     const double dz = p->z-com.z;
                     
-                    /*
-                    const double rinv = 1/sqrt ( dx*dx + dy*dy + dz*dz );
+                    const double rinv = 1/sqrt( dx*dx + dy*dy + dz*dz );
                     const double vr = (dx*dvx + dy*dvy + dz*dvz)*rinv;
                     const double term = -2.*vr*rinv/tau_e[i];
                     
                     p->ax += term*dx;
                     p->ay += term*dy;
                     p->az += term*dz;
-                     */
-                        
+                    
+                    /*
                     const double hx = dy*dvz - dz*dvy;
                     const double hy = dz*dvx - dx*dvz;
                     const double hz = dx*dvy - dy*dvx;
@@ -296,6 +295,7 @@ void migration_forces(struct reb_simulation* r){
                     p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
                     p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
                     p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
+                     */
                 }
             }
             com = reb_get_com_of_pair(com,particles[i]);

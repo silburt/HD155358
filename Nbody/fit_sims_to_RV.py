@@ -113,12 +113,10 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 300
+    N_runs = 1000
     pool = mp.Pool(processes=np.min([N_runs, 5]))
     runs = make_runs(N_runs)
     #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 100000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
-    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 5.0, 5.0, 646, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd646')]
-    #runs = [(0.99672170557149731, 0.87038713759372832, 0.82730589001482202, 10000.0, 1e-2, 1e-2, 757, 'output/taueinner_migrate1.0e+03_Kin5.0e+00_Kout5.0e+00_sd757')]
     pool.map(execute, runs)
     pool.close()
     pool.join()
