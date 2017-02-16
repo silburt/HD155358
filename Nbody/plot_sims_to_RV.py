@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import glob
+import os
 
 def get_simRV(filename, time_sim, phi):
     AUyr2ms = 29682.77                   #AU/(yr/2pi) -> m/s
@@ -57,12 +58,14 @@ for i,f in enumerate(files):
     axes.plot([time_RV.iloc[0],time_RV.iloc[-1]+1], [0,0], 'k--')
     axes.set_xlabel('time')
     axes.set_ylabel('residuals (m/s)')
-    if lnL < 500 and jitter2 < 18:
-        dir = name.split('/')
-        plt.savefig("%s/%s/good_ones/%s.png"%(dir[0],dir[1],dir[2]))
+    if lnL < 500 and jitter2 < 20:
+        plt.savefig("%s.png"%name)
         fig = corner.corner(sim_samples, labels=["x_s", "x_t", "y_s", "y_t", "phi", "jitter2"])
-        fig.savefig("%s/%s/good_ones/%s_corner.png"%(dir[0],dir[1],dir[2]))
+        fig.savefig("%s_corner.png"%name)
         plt.close(fig)
+        os.system("python orbits.py %s.txt"%name)
+        dir = name.split('/')
+        os.system("mv %s* %s/%s/good_ones/."%(name,dir[0],dir[1]))
     else:
         plt.savefig("%s.png"%name)
     plt.close()

@@ -8,11 +8,10 @@ import random
 import glob
 
 #ext = '_Mpl10mp'    #what goes right before the .txt
-ext = 'sd*'
 
 #Specify directory
 dir = sys.argv[1]
-files = glob.glob(dir+'*'+ext+'.txt')
+files = glob.glob(dir+'*.txt')
 N = len(files)
 i=0
 while i < N:            #just want the main .txt files
@@ -31,8 +30,9 @@ def execute(filename):
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
-    pool = mp.Pool(processes=20)
+    pool = mp.Pool(processes=10)
     print 'computing '+str(N)+' orbit.py analyses'
     pool.map(execute, files)
     pool.close()
     pool.join()
+    os.system('mv %s/*_orbit.png %s/orbits/.'%(dir, dir))
