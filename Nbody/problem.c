@@ -269,6 +269,7 @@ void migration_forces(struct reb_simulation* r){
                     const double dy = p->y-com.y;
                     const double dz = p->z-com.z;
                     
+                    /*
                     const double rinv = 1/sqrt ( dx*dx + dy*dy + dz*dz );
                     const double vr = (dx*dvx + dy*dvy + dz*dvz)*rinv;
                     const double term = -2.*vr*rinv/tau_e[i];
@@ -276,8 +277,8 @@ void migration_forces(struct reb_simulation* r){
                     p->ax += term*dx;
                     p->ay += term*dy;
                     p->az += term*dz;
-                    
-                    /*
+                     */
+                        
                     const double hx = dy*dvz - dz*dvy;
                     const double hy = dz*dvx - dx*dvz;
                     const double hz = dx*dvy - dy*dvx;
@@ -289,12 +290,12 @@ void migration_forces(struct reb_simulation* r){
                     const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
                     const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
                     const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
-                    const double a = -mu/( v*v - 2.*mu/r );             // semi major axis
+                    const double a = -mu/( v*v - 2.*mu/r );			// semi major axis
                     const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
                     const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
                     p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
                     p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
-                    p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;*/
+                    p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
                 }
             }
             com = reb_get_com_of_pair(com,particles[i]);
