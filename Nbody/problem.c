@@ -96,7 +96,7 @@ int main(int argc, char* argv[]){
     //Migration times and rates
     mig_index = 2;                                                          //index of migrating planet
     mig_time = MAX(5*mig_rate,3e3*calc_P(r,1));                             //migration time
-    dispersal_time = mig_rate/2;                                            //1e4 orbital periods of inner planet
+    dispersal_time = mig_time;                                              //1e4 orbital periods of inner planet
     dispersal_rate = pow(5e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));  //rate of disk dispersal
     dispersal_fac = 1;
     double tmax = 1.5*mig_time + dispersal_time;
