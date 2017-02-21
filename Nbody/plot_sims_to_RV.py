@@ -37,7 +37,10 @@ time_RV = (time_RVdays - time_RVdays[0])*dtoyr2pi
 print "analyzing %d files"%(len(files))
 for i,f in enumerate(files):
     name = f.split('.npy')[0]
-    sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, n_params))
+    try:
+        sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, n_params))
+    except:
+        pass
     sim_MAP = np.percentile(sim_samples, 50, axis=0)
     x_s, x_t, y_s, y_t, phi, jitter2 = sim_MAP
 
@@ -83,7 +86,7 @@ for i,f in enumerate(files):
         fig = corner.corner(sim_samples, labels=["x_s", "x_t", "y_s", "y_t", "phi", "jitter2"])
         fig.savefig("%s_corner.png"%name)
         plt.close(fig)
-        os.system("python orbits.py %s.txt"%name)
+        #os.system("python orbits.py %s.txt"%name)
         dir = name.split('/')
         #os.system("mv %s* %s/%s/good_ones/."%(name,dir[0],dir[1]))
     else:

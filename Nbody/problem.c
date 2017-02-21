@@ -33,7 +33,7 @@ double* lambda;
 double* a;
 double* e;
 double mig_time, dispersal_time, dispersal_rate, mig_rate, K1, K2, dispersal_fac;
-int mig_index, print_disk_dispersal=0;
+int mig_index, print_disk_dispersal=0, output_rate;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
@@ -115,6 +115,7 @@ int main(int argc, char* argv[]){
     e = calloc(sizeof(double),r->N);
     omega = calloc(sizeof(double),r->N);
     lambda = calloc(sizeof(double),r->N);
+    output_rate = (int)tmax/5000;
     
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
@@ -139,7 +140,7 @@ double tout = 10;
 void heartbeat(struct reb_simulation* r){
     if (tout <r->t){
         //tout *= 1.01;
-        tout += 25;
+        tout += output_rate;
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         int N_mini = 0;
@@ -246,7 +247,7 @@ double calc_P(struct reb_simulation* r, int index){
 
 void migration_forces(struct reb_simulation* r){
     if(r->t < (mig_time + dispersal_time)){
-        const double G = r->G;
+        //const double G = r->G;
         const int N = r->N;
         struct reb_particle* const particles = r->particles;
         struct reb_particle com = reb_get_com(r);
@@ -264,7 +265,6 @@ void migration_forces(struct reb_simulation* r){
                 }
                 
                 if (tau_e[i]!=0){ 	// Eccentricity damping
-                    const double mu = G*(com.m + p->m);
                     const double dx = p->x-com.x;
                     const double dy = p->y-com.y;
                     const double dz = p->z-com.z;
@@ -278,6 +278,7 @@ void migration_forces(struct reb_simulation* r){
                     p->az += term*dz;
                     
                     /*
+                    const double mu = G*(com.m + p->m);
                     const double hx = dy*dvz - dz*dvy;
                     const double hy = dz*dvx - dx*dvz;
                     const double hz = dx*dvy - dy*dvx;
