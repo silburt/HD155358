@@ -86,16 +86,12 @@ for i,f in enumerate(files):
         fig = corner.corner(sim_samples, labels=["x_s", "x_t", "y_s", "y_t", "phi", "jitter2"])
         fig.savefig("%s_corner.png"%name)
         plt.close(fig)
-        #os.system("python orbits.py %s.txt"%name)
+        os.system("python orbits.py %s.txt"%name)
         dir = name.split('/')
-        #os.system("mv %s* %s/%s/good_ones/."%(name,dir[0],dir[1]))
+        os.system("mv %s* %s/%s/good_ones/."%(name,dir[0],dir[1]))
+        print "lnL=%f, file:%s"%(lnL,name)
     else:
         plt.savefig("%s.png"%name)
     plt.close()
-
-    if plot_corner == 1:
-        fig = corner.corner(sim_samples, labels=["x_s", "x_t", "y_s", "y_t", "phi", "jitter2"])
-        fig.savefig(name+"_corner.png")
-        plt.close(fig)
 
     print i

@@ -84,10 +84,14 @@ def run_emcee(filename, time_RV, data_RV, err2_RV):
     pos = [p + 1e-8 * np.random.randn(ndim) for i in xrange(nwalkers)]
     bar = Bar("Running Production", max=bar_checkpoints)
     for i in range(bar_checkpoints):
-        pos, _, _ = sampler.run_mcmc(pos, n_it/bar_checkpoints);
+        pos, lnP, rstate = sampler.run_mcmc(pos, n_it/bar_checkpoints);
         bar.next()
     bar.finish()
-    np.save(filename+'.npy',sampler.chain)
+    #save
+    np.save(filename+'_flatchain.npy',sampler.flatchain)
+    np.save(filename+'_flatlnprob.npy',sampler.flatlnprobability)
+    np.save(filename+'_AF.npy',sampler.acceptance_fraction)
+    np.save(filename+'_ACT.npy',sampler.get_autocorr_time())
 
 ####################################################
 #############Main Code##############################
@@ -116,7 +120,7 @@ if __name__== '__main__':
     N_runs = 500
     pool = mp.Pool(processes=np.min([N_runs, 5]))
     runs = make_runs(N_runs)
-    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 100000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
+    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
     pool.map(execute, runs)
     pool.close()
     pool.join()
