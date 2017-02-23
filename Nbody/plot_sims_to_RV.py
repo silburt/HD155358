@@ -24,23 +24,21 @@ def get_simRV(filename, time_sim, phi):
 #args
 dir = sys.argv[1]
 plot_corner = 0
-n_params = 6    #x_s, x_t, y_s, y_t, phi, jitter2
 
 fontsize=13
 
 #main code
 dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
-files = glob.glob(dir+'*.npy')
+files = glob.glob(dir+'*_flatchain.npy')
 data = pd.read_csv('../RV.txt', delimiter=' ')
 time_RVdays, data_RV, err_RV = data['BJD'], data['RV'], data['Unc']
 time_RV = (time_RVdays - time_RVdays[0])*dtoyr2pi
 print "analyzing %d files"%(len(files))
 for i,f in enumerate(files):
-    name = f.split('.npy')[0]
-    try:
-        sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, n_params))
-    except:
-        pass
+    name = f.split('_flatchain.npy')[0]
+    #n_params = 6    #x_s, x_t, y_s, y_t, phi, jitter2
+    #sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, n_params))
+    sim_samples = np.load(name+'_flatchain.npy')[20000:]
     sim_MAP = np.percentile(sim_samples, 50, axis=0)
     x_s, x_t, y_s, y_t, phi, jitter2 = sim_MAP
 
@@ -75,7 +73,7 @@ for i,f in enumerate(files):
     ax0.set_ylabel('RV (m/s)',fontsize=fontsize)
     ax0.set_xlabel('BJD - 2450000',fontsize=fontsize)
     ax0.set_xlim([2000,6100])
-    #axes.set_title('lnL = %f'%lnL)
+    ax0.set_title('lnL = %f'%lnL)
     
     ax1.errorbar(time_RVdays, simRV - data_RV, yerr=err_RV, fmt='.', color='green')
     ax1.plot([time_RVdays.iloc[0],time_RVdays.iloc[-1]+1], [0,0],'k--', lw=2)

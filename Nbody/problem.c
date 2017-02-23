@@ -133,7 +133,7 @@ int main(int argc, char* argv[]){
     if(get_RV && (r->N == 3)){
         reb_output_binary(r, binary);
     }
-
+    
 }
 
 double tout = 10;
