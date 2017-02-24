@@ -6,7 +6,7 @@ include ../../rebound/src/Makefile.defs
 all: librebound
 	@echo ""
 	@echo "Compiling problem file ..."
-	$(CC) -I ../../rebound/src/ -Wl,-rpath,./ $(OPT) $(PREDEF) problem.c -L. -lrebound $(LIB) -o rebound
+	$(CC) -I ../../rebound/src/ -Wl,-rpath,./ $(OPT) $(PREDEF) problem2.c -L. -lrebound $(LIB) -o rebound
 	@echo ""
 	@echo "REBOUND compiled successfully."
 
