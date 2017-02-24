@@ -69,9 +69,7 @@ int main(int argc, char* argv[]){
     
     double mJ = 0.00095424836;  //mass of Jupiter
     //double a1 = 0.6, a2=1.02;
-    //double a1 = 6, a2=11;
-    double a1 = 2, a2=4;
-    //double a1=1, a2=10;
+    double a1 = 1, a2=1.8;
     r->dt = 2*M_PI*sqrt(a1*a1*a1/star.m)/50;
     // Planet 1
     {
@@ -95,18 +93,13 @@ int main(int argc, char* argv[]){
     
     r->N_active = r->N;
     
-    //migration stuff
-    //mig_time = mig_rate*4;
-    //dispersal_time = mig_time;
-    
     //Migration times and rates
     mig_index = 2;                                                          //index of migrating planet
-    mig_time = MAX(12*mig_rate,1e3*calc_P(r,1));                             //migration time
-    //dispersal_time = 2e2*calc_P(r,1);                                       //1e4 orbital periods of inner planet
-    dispersal_time = mig_time;                                              //dispersal time of prot. planet disk
-    dispersal_rate = pow(1e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));  //rate of disk dispersal
+    mig_time = MAX(5*mig_rate,3e3*calc_P(r,1));                             //migration time
+    dispersal_time = mig_time;                                              //1e4 orbital periods of inner planet
+    dispersal_rate = pow(5e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));  //rate of disk dispersal
     dispersal_fac = 1;
-    double tmax = 2*mig_time + dispersal_time;
+    double tmax = 1.5*mig_time + dispersal_time;
     
     //Migraiton arrays
     tau_a = calloc(sizeof(double),r->N);
@@ -276,23 +269,33 @@ void migration_forces(struct reb_simulation* r){
                     const double dy = p->y-com.y;
                     const double dz = p->z-com.z;
                     
-                    const double hx = dy*dvz - dz*dvy;
-                    const double hy = dz*dvx - dx*dvz;
-                    const double hz = dx*dvy - dy*dvx;
-                    const double h = sqrt ( hx*hx + hy*hy + hz*hz );
-                    const double v = sqrt ( dvx*dvx + dvy*dvy + dvz*dvz );
-                    const double r = sqrt ( dx*dx + dy*dy + dz*dz );
-                    const double vr = (dx*dvx + dy*dvy + dz*dvz)/r;
-                    const double ex = 1./mu*( (v*v-mu/r)*dx - r*vr*dvx );
-                    const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
-                    const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
-                    const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
-                    const double a = -mu/( v*v - 2.*mu/r );             // semi major axis
-                    const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
-                    const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
-                    p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
-                    p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
-                    p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
+                    const double rinv = 1/sqrt( dx*dx + dy*dy + dz*dz );
+                    const double vr = (dx*dvx + dy*dvy + dz*dvz)*rinv;
+                    const double term = -2.*vr*rinv/tau_e[i];
+                    
+                    p->ax += term*dx;
+                    p->ay += term*dy;
+                    p->az += term*dz;
+                    
+                    /*
+                     const double hx = dy*dvz - dz*dvy;
+                     const double hy = dz*dvx - dx*dvz;
+                     const double hz = dx*dvy - dy*dvx;
+                     const double h = sqrt ( hx*hx + hy*hy + hz*hz );
+                     const double v = sqrt ( dvx*dvx + dvy*dvy + dvz*dvz );
+                     const double r = sqrt ( dx*dx + dy*dy + dz*dz );
+                     const double vr = (dx*dvx + dy*dvy + dz*dvz)/r;
+                     const double ex = 1./mu*( (v*v-mu/r)*dx - r*vr*dvx );
+                     const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
+                     const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
+                     const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
+                     const double a = -mu/( v*v - 2.*mu/r );			// semi major axis
+                     const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
+                     const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
+                     p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
+                     p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
+                     p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
+                     */
                 }
             }
             com = reb_get_com_of_pair(com,particles[i]);
@@ -309,12 +312,10 @@ void migration_forces(struct reb_simulation* r){
                 printf("\n **Disk Dispersal Started**\n");
                 print_disk_dispersal = 1;
             }
-            dispersal_fac *= dispersal_rate;
+            dispersal_fac *= pow(5e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));
             tau_a[mig_index] *= dispersal_fac;
             tau_e[1] *= dispersal_fac;
             tau_e[2] *= dispersal_fac;
-            //tau_e[2] = -tau_a[2]/K2;
-            //tau_e[1] = -tau_a[2]/K1;
         }
     } else if (print_disk_dispersal==1){
         printf("\n **Disk Dispersal Finished**\n");
