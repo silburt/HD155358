@@ -46,7 +46,6 @@ int main(int argc, char* argv[]){
     K2 = atof(argv[6]);
     srand(atoi(argv[7]));
     strcat(output_name,argv[8]);
-    int get_RV = 1;                 //Get Radial Velocity of Star
     
     r->integrator	= REB_INTEGRATOR_WHFAST;
     
@@ -99,7 +98,7 @@ int main(int argc, char* argv[]){
     dispersal_time = mig_time;                                              //1e4 orbital periods of inner planet
     dispersal_rate = pow(5e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));  //rate of disk dispersal
     dispersal_fac = 1;
-    double tmax = 1.5*mig_time + dispersal_time;
+    double tmax = 1.25*mig_time + dispersal_time;
     
     //Migraiton arrays
     tau_a = calloc(sizeof(double),r->N);
@@ -130,13 +129,11 @@ int main(int argc, char* argv[]){
     // Integrate!
     reb_integrate(r, tmax);
     
-    if(get_RV && (r->N == 3)){
-        reb_output_binary(r, binary);
-    }
+    if(r->N == 3) reb_output_binary(r, binary);
     
 }
 
-double tout = 10;
+double tout = 1;
 void heartbeat(struct reb_simulation* r){
     if (tout <r->t){
         //tout *= 1.01;
@@ -269,7 +266,6 @@ void migration_forces(struct reb_simulation* r){
                     const double dy = p->y-com.y;
                     const double dz = p->z-com.z;
                     
-                    /*
                     //Papalouzou & Larwood (2000)
                     const double rinv = 1/sqrt( dx*dx + dy*dy + dz*dz );
                     const double vr = (dx*dvx + dy*dvy + dz*dvz)*rinv;
@@ -278,8 +274,8 @@ void migration_forces(struct reb_simulation* r){
                     p->ax += term*dx;
                     p->ay += term*dy;
                     p->az += term*dz;
-                    */
-                     
+                    
+                    /*
                     //Lee & Peale (2002)
                     const double mu = r->G*(com.m + p->m);
                     const double hx = dy*dvz - dz*dvy;
@@ -299,6 +295,7 @@ void migration_forces(struct reb_simulation* r){
                     p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
                     p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
                     p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
+                     */
                 }
             }
             com = reb_get_com_of_pair(com,particles[i]);

@@ -87,7 +87,7 @@ def lnprob(theta, filename, time_RV, data_RV, err2_RV):
 
 def run_emcee(filename, time_RV, data_RV, err2_RV):
     theta_ini = [1.5,0,1,4,np.pi,10]  #x_stretch, x_translate, y_stretch, y_translate, phi, jitter2
-    ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 60, 2000, 100
+    ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 100, 2000, 100
     p0 = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(filename, time_RV, data_RV, err2_RV));
     print("Running burn-in...")
@@ -105,7 +105,7 @@ def run_emcee(filename, time_RV, data_RV, err2_RV):
     np.save(filename+'_flatchain.npy',sampler.chain)
     np.save(filename+'_flatlnprob.npy',sampler.lnprobability)
     np.save(filename+'_AF.npy',sampler.acceptance_fraction)
-    np.save(filename+'_ACT.npy',sampler.get_autocorr_time())
+    #np.save(filename+'_ACT.npy',sampler.get_autocorr_time())   #leads to an error for some reason on prawn...
 
 ####################################################
 #############Main Code##############################
@@ -115,32 +115,32 @@ MAPP = np.percentile(samples, 50, axis=0)[:-2]
 #each pool worker executes this
 def execute(pars):
     os.system('./rebound %f %f %f %f %f %f %d %s'%pars)
-#    name = pars[-1].split('.txt')[0]
-#    try:
-#        print "\nPerforming MCMC fit."
-#        dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
-#        data = pd.read_csv('../RV.txt', delimiter=' ')
-#        time_RV, data_RV, err2_RV = (data['BJD']-data['BJD'][0])*dtoyr2pi, data['RV'], data['Unc']**2
-#        run_emcee(name, time_RV, data_RV, err2_RV)
-#    except:
-#        f = open('output/bad_sims.txt','a')
-#        f.write("Error simulating %s.txt. Skipped emcee.\n"%name)
-#        f.close()
-#        print "\nError simulating %s.txt. Skipping emcee.\n"%name
+    name = pars[-1].split('.txt')[0]
+    try:
+        print "\nPerforming MCMC fit."
+        dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
+        data = pd.read_csv('../RV.txt', delimiter=' ')
+        time_RV, data_RV, err2_RV = (data['BJD']-data['BJD'][0])*dtoyr2pi, data['RV'], data['Unc']**2
+        run_emcee(name, time_RV, data_RV, err2_RV)
+    except:
+        f = open('output/bad_sims.txt','a')
+        f.write("Error simulating %s.txt. Skipped emcee.\n"%name)
+        f.close()
+        print "\nError simulating %s.txt. Skipping emcee.\n"%name
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    #N_runs = 100
-    #runs = make_runs(N_runs)
+    N_runs = 500
+    runs = make_runs(N_runs)
     
-    dir = 'good_ones/'
+    #dir = 'good_ones/'
     #dir = 'saved_output/round15_best_runs_/good_runs_copy/'
-    runs, N_runs = retrieve_runs(dir)
-    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
+    #runs, N_runs = retrieve_runs(dir)
     
-    pool = mp.Pool(processes=np.min([N_runs, 1]))
+    pool = mp.Pool(processes=np.min([N_runs, 5]))
     pool.map(execute, runs)
     pool.close()
     pool.join()
 
+    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
