@@ -24,7 +24,7 @@ def get_simRV(filename, time_sim, phi):
 #args
 dir = sys.argv[1]
 plot_corner = 0
-
+n_params = 6    #x_s, x_t, y_s, y_t, phi, jitter2
 fontsize=13
 
 #main code
@@ -36,9 +36,8 @@ time_RV = (time_RVdays - time_RVdays[0])*dtoyr2pi
 print "analyzing %d files"%(len(files))
 for i,f in enumerate(files):
     name = f.split('_flatchain.npy')[0]
-    #n_params = 6    #x_s, x_t, y_s, y_t, phi, jitter2
-    #sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, n_params))
-    sim_samples = np.load(name+'_flatchain.npy')[20000:]
+    sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, n_params))
+    #sim_samples = np.load(name+'_flatchain.npy')[40000:]
     sim_MAP = np.percentile(sim_samples, 50, axis=0)
     x_s, x_t, y_s, y_t, phi, jitter2 = sim_MAP
 
@@ -54,8 +53,8 @@ for i,f in enumerate(files):
     times = np.linspace(0,80/x_s,300)                                                   #plot full curve
     simRVfull = y_s*get_simRV(name,times,phi) + y_t
     timesfull = (times*x_s - x_t)/dtoyr2pi + data['BJD'][0]
-    lnL = 0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
-    if lnL < 500 and jitter2 < 20:
+    lnL = -0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
+    if lnL > -500 and jitter2 < 20:
         for theta_sample in sim_samples[np.random.randint(len(sim_samples), size=100)]:
             x_s, x_t, y_s, y_t, phi, jitter2 = theta_sample
             times_sample = np.linspace(0,80/x_s,300)
@@ -79,7 +78,7 @@ for i,f in enumerate(files):
     ax1.plot([time_RVdays.iloc[0],time_RVdays.iloc[-1]+1], [0,0],'k--', lw=2)
     ax1.set_ylabel('MAP Residuals (m/s)',fontsize=fontsize)
     ax1.set_xlabel('BJD - 2450000',fontsize=fontsize)
-    if lnL < 500 and jitter2 < 20:
+    if lnL > -500 and jitter2 < 20:
         plt.savefig("%s.pdf"%name)
         fig = corner.corner(sim_samples, labels=["x_s", "x_t", "y_s", "y_t", "phi", "jitter2"])
         fig.savefig("%s_corner.png"%name)

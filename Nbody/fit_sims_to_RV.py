@@ -11,9 +11,21 @@ import numpy as np
 import pandas as pd
 import emcee
 import rebound
+import glob
 from progress.bar import Bar
 
 #############General Functions######################
+def retrieve_runs(dir):
+    files = glob.glob(dir+'*.txt')
+    runs = []
+    for f in files:
+        print f
+        time, dE, N, migrate, damp1, damp2, migtime, DT, a1, e1, a2, e2, phi1, phi2, phi3, m1, m2, taua1, taue1, taua2, taue2 = np.loadtxt(open(f, 'r'), delimiter=',', unpack=True)
+        seed = int(f.split('_sd')[1].split('.txt')[0])
+        name = f.split('good_ones/')[1].split('.txt')[0]
+        runs.append((m1[0],m2[0],1,migrate[0],damp1[0],damp2[0],seed,name))
+    return runs, len(runs)
+
 def make_runs(N_runs):
     #draw masses from the posterior
     m1 = []
@@ -73,11 +85,11 @@ def lnprob(theta, filename, time_RV, data_RV, err2_RV):
 
 def run_emcee(filename, time_RV, data_RV, err2_RV):
     theta_ini = [1.5,0,1,4,np.pi,10]  #x_stretch, x_translate, y_stretch, y_translate, phi, jitter2
-    ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 50, 2000, 100
+    ndim, nwalkers, n_it, bar_checkpoints = len(theta_ini), 60, 2000, 100
     p0 = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(filename, time_RV, data_RV, err2_RV));
     print("Running burn-in...")
-    p0, lnp, _ = sampler.run_mcmc(p0, 200)
+    p0, _, _ = sampler.run_mcmc(p0, 200)
     p = p0[np.argmax(lnp)]
     sampler.reset()
     # Re-sample the walkers near the best walker from the previous burn-in.
@@ -88,8 +100,8 @@ def run_emcee(filename, time_RV, data_RV, err2_RV):
         bar.next()
     bar.finish()
     #save
-    np.save(filename+'_flatchain.npy',sampler.flatchain)
-    np.save(filename+'_flatlnprob.npy',sampler.flatlnprobability)
+    np.save(filename+'_flatchain.npy',sampler.chain)
+    np.save(filename+'_flatlnprob.npy',sampler.lnprobability)
     np.save(filename+'_AF.npy',sampler.acceptance_fraction)
     np.save(filename+'_ACT.npy',sampler.get_autocorr_time())
 
@@ -117,10 +129,13 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     os.system('make')
-    N_runs = 500
-    pool = mp.Pool(processes=np.min([N_runs, 5]))
-    runs = make_runs(N_runs)
+    #N_runs = 100
+    #runs = make_runs(N_runs)
+    dir = 'good_ones/'
+    runs, N_runs = retrieve_runs(dir)
     #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
+    
+    pool = mp.Pool(processes=np.min([N_runs, 5]))
     pool.map(execute, runs)
     pool.close()
     pool.join()
