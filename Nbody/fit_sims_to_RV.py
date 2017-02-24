@@ -89,14 +89,14 @@ def run_emcee(filename, time_RV, data_RV, err2_RV):
     p0 = [theta_ini + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(filename, time_RV, data_RV, err2_RV));
     print("Running burn-in...")
-    p0, _, _ = sampler.run_mcmc(p0, 200)
+    p0, lnp, rstate = sampler.run_mcmc(p0, 200)
     p = p0[np.argmax(lnp)]
     sampler.reset()
     # Re-sample the walkers near the best walker from the previous burn-in.
     pos = [p + 1e-8 * np.random.randn(ndim) for i in xrange(nwalkers)]
     bar = Bar("Running Production", max=bar_checkpoints)
     for i in range(bar_checkpoints):
-        pos, lnP, rstate = sampler.run_mcmc(pos, n_it/bar_checkpoints);
+        pos, _, _ = sampler.run_mcmc(pos, n_it/bar_checkpoints);
         bar.next()
     bar.finish()
     #save
@@ -131,7 +131,9 @@ if __name__== '__main__':
     os.system('make')
     #N_runs = 100
     #runs = make_runs(N_runs)
+    
     dir = 'good_ones/'
+    #dir = 'saved_output/round15_best_runs_/good_ones/'
     runs, N_runs = retrieve_runs(dir)
     #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]
     
