@@ -36,7 +36,7 @@ time_RV = (time_RVdays - time_RVdays[0])*dtoyr2pi
 print "analyzing %d files"%(len(files))
 for i,f in enumerate(files):
     name = f.split('_flatchain.npy')[0]
-    sim_samples = np.load(name+'.npy')[:,500:,:].reshape((-1, n_params))
+    sim_samples = np.load(name+'_flatchain.npy')[:,500:,:].reshape((-1, n_params))
     #sim_samples = np.load(name+'_flatchain.npy')[40000:]
     sim_MAP = np.percentile(sim_samples, 50, axis=0)
     x_s, x_t, y_s, y_t, phi, jitter2 = sim_MAP
@@ -53,7 +53,7 @@ for i,f in enumerate(files):
     times = np.linspace(0,80/x_s,300)                                                   #plot full curve
     simRVfull = y_s*get_simRV(name,times,phi) + y_t
     timesfull = (times*x_s - x_t)/dtoyr2pi + data['BJD'][0]
-    lnL = -0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
+    lnL = 0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
     if lnL > -500 and jitter2 < 20:
         for theta_sample in sim_samples[np.random.randint(len(sim_samples), size=100)]:
             x_s, x_t, y_s, y_t, phi, jitter2 = theta_sample
@@ -85,7 +85,7 @@ for i,f in enumerate(files):
         plt.close(fig)
         os.system("python orbits.py %s.txt"%name)
         dir = name.split('/')
-        os.system("mv %s* %s/%s/good_ones/."%(name,dir[0],dir[1]))
+        #os.system("mv %s* %s/%s/good_ones/."%(name,dir[0],dir[1]))
         print "lnL=%f, file:%s"%(lnL,name)
     else:
         plt.savefig("%s.png"%name)
