@@ -102,8 +102,8 @@ def run_emcee(filename, time_RV, data_RV, err2_RV):
         bar.next()
     bar.finish()
     #save
-    np.save(filename+'_flatchain.npy',sampler.chain)
-    np.save(filename+'_flatlnprob.npy',sampler.lnprobability)
+    np.save(filename+'_chain.npy',sampler.chain)
+    np.save(filename+'_lnprob.npy',sampler.lnprobability)
     np.save(filename+'_AF.npy',sampler.acceptance_fraction)
     #np.save(filename+'_ACT.npy',sampler.get_autocorr_time())   #leads to an error for some reason on prawn...
 

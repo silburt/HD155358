@@ -103,11 +103,9 @@ int main(int argc, char* argv[]){
     //Migraiton arrays
     tau_a = calloc(sizeof(double),r->N);
     tau_e = calloc(sizeof(double),r->N);
-    tau_a[mig_index] = 2.*M_PI*mig_rate/sqrt(calc_a(r,mig_index));  //tau_a = a/dot(a), scale-free
+    tau_a[mig_index] = 2.*M_PI*mig_rate/sqrt(calc_a(r,mig_index));  //tau_a = a/dot(a), scale-free, from Gold&Schlich, see phd2 notebook
     tau_e[1] = tau_a[mig_index]/K1;                                 //tau_e = e/dot(e)
     tau_e[2] = tau_a[mig_index]/K2;
-    printf("\nmig_time=%e, dispersal_time=%e, dispersal_rate=%.10e\n",mig_time,dispersal_time,dispersal_rate);
-    printf("\ntau_a=%e, tau_e1=%e, tau_e2=%e\n",tau_a[mig_index],tau_e[1],tau_e[2]);
     
     //Other arrays
     a = calloc(sizeof(double),r->N);
@@ -122,8 +120,6 @@ int main(int argc, char* argv[]){
     //naming
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*"); system(syss);
     char binary[120] = {0}; strcat(binary,output_name); strcat(binary,".bin");
-    //char RVout[120] = {0}; strcat(RVout, output_name); strcat(RVout, "_RV.txt");
-    
     strcat(output_name,".txt");
     
     // Integrate!
