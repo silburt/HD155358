@@ -41,7 +41,7 @@ for i,f in enumerate(files):
     x_s, x_t, y_s, y_t, phi, jitter2 = sim_MAP
 
     #plot sim, data, full curve - plot 1
-    fig = plt.figure(figsize=(11,6))
+    fig = plt.figure(figsize=(20, 12))
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1, 1])
     ax0 = plt.subplot(gs[0])
     ax1 = plt.subplot(gs[1], sharex=ax0)
@@ -53,7 +53,7 @@ for i,f in enumerate(files):
     simRVfull = y_s*get_simRV(name,times,phi) + y_t
     timesfull = (times*x_s - x_t)/dtoyr2pi + data['BJD'][0]
     lnL = -0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
-    if lnL > -285 and jitter2 < 20:
+    if lnL > -290 and jitter2 < 20:
         for theta_sample in sim_samples[np.random.randint(len(sim_samples), size=100)]:
             x_s, x_t, y_s, y_t, phi, jitter2 = theta_sample
             times_sample = np.linspace(0,80/x_s,300)
@@ -65,19 +65,19 @@ for i,f in enumerate(files):
 
     index = (timesfull<time_RVdays.iloc[-1]+1) & (timesfull>time_RVdays.iloc[0]-1)
     ax0.plot(timesfull[index],simRVfull[index], color='green',linewidth=2, label='MAP curve')   #sim full curve
-    ax0.errorbar(time_RVdays,data_RV, yerr=err_RV, fmt='.', color='blue', label='data')         #data points
+    ax0.errorbar(time_RVdays,data_RV, yerr=err_RV, fmt='o', color='blue', label='data')         #data points
     #ax0.plot(time_RVdays, simRV, '.', color='red', label='MAP points')                         #sim points
-    ax0.legend(loc='upper right',fontsize=6,numpoints=1)
+    ax0.legend(loc='upper right',fontsize=9,numpoints=1)
     ax0.set_ylabel('RV (m/s)',fontsize=fontsize)
     ax0.set_xlabel('BJD - 2450000',fontsize=fontsize)
     ax0.set_xlim([2000,6100])
     #ax0.set_title('lnL = %f'%lnL)
     
-    ax1.errorbar(time_RVdays, simRV - data_RV, yerr=err_RV, fmt='.', color='green')
+    ax1.errorbar(time_RVdays, simRV - data_RV, yerr=err_RV, fmt='o', color='green')
     ax1.plot([time_RVdays.iloc[0],time_RVdays.iloc[-1]+1], [0,0],'k--', lw=2)
     ax1.set_ylabel('MAP Residuals (m/s)',fontsize=fontsize)
     ax1.set_xlabel('BJD - 2450000',fontsize=fontsize)
-    if lnL > -285 and jitter2 < 20:
+    if lnL > -290 and jitter2 < 20:
         plt.savefig("%s.pdf"%name)
         fig = corner.corner(sim_samples, labels=["x_s", "x_t", "y_s", "y_t", "phi", "jitter2"])
         fig.savefig("%s_corner.png"%name)

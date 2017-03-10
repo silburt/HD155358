@@ -44,7 +44,7 @@ def make_runs(N_runs):
     #make N_runs for simulation
     random.seed()
     runs = []
-    mig_rate = random.sample(np.round(np.logspace(2.5,6,10*N_runs)), N_runs)
+    mig_rate = random.sample(np.round(np.logspace(2.5,7,10*N_runs)), N_runs)
     K1 = random.sample(np.logspace(-1,3,10*N_runs), N_runs)
     K2 = random.sample(np.logspace(-1,3,10*N_runs), N_runs)
     path = 'output/'
