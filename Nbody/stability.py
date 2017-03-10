@@ -3,6 +3,7 @@ import numpy as np
 import os
 import random
 import multiprocessing as mp
+import time
 
 def exit_condition(sim):
     o1 = sim.particles[1].calculate_orbit(sim.particles[0])
@@ -22,14 +23,14 @@ def simulate(theta,times,name,pp_interaction=1):
     mJ = 9.543e-4                       #Jupiter mass -> solar mass
     
     sim = rebound.Simulation()
-    sim.integrator = 'whfast'
+    sim.integrator = 'wnfast'
+    sim.dt = 2*np.pi*aa1**(1.5) / 100.  #dt = 29 steps per orb per of inner planet
     sim.add(m=0.92)                     #add the star
-    sim.dt = 2*np.pi* aa1**(1.5)/30.    #dt = 30 steps per orb per of inner planet
-    sim.add(m=m1sini*mJ/sini,a=aa1,l=lambda1,h=h1,k=k1)
-    sim.add(m=m2sini*mJ/sini,a=aa2,l=lambda2,h=h2,k=k2)
     if pp_interaction == 0:
         sim.testparticle_type = 1
         sim.N_active = sim.N
+    sim.add(m=m1sini*mJ/sini,a=aa1,l=lambda1,h=h1,k=k1)
+    sim.add(m=m2sini*mJ/sini,a=aa2,l=lambda2,h=h2,k=k2)
     sim.move_to_com()
     sim.exit_min_distance = exit_condition(sim)
     E0 = sim.calculate_energy()
@@ -42,34 +43,35 @@ def simulate(theta,times,name,pp_interaction=1):
         except rebound.Encounter as error:
             output(sim,E0,f)
 
-def make_runs(N_runs, pp_interaction=1):
+def make_runs(N_runs, logtmax, pp_interaction=1):
     random.seed()
     runs = []
     if pp_interaction == 1:
         filename = '../emcee_chains/best_runs/hk_400walk_5000it_chkpt1.npy'
+        #filename = '../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy'
     else:
         filename = '../emcee_chains/best_runs/hksemi-active_400walk_5000it_chkpt1.npy'
     samples = np.load(filename)[:, 1000:, :].reshape((-1, 13))
     for i,theta in enumerate(samples[np.random.randint(len(samples), size=N_runs)]):
-        name = "output/ppint%d_run%d.csv"%(pp_interaction,i)
-        runs.append((theta[:11],name,pp_interaction))
+        name = "output/tmax1e%d_ppint%d_run%d.csv"%(logtmax,pp_interaction,i)
+        runs.append((theta[:11],logtmax,pp_interaction,name))
     return runs
 
 def execute(pars):
-    theta, name, pp_int = pars
-    logtmax = 5
-    Np = 1000
-    times = 2*np.pi*np.logspace(1,logtmax,Np)
+    theta, logtmax, pp_int, name = pars
+    Npoints = 1000
+    times = 2*np.pi*np.logspace(1,logtmax,Npoints)
     simulate(theta,times,name,pp_int)
 
 #Main multiprocess execution
 if __name__== '__main__':
     #params
-    N_runs = 1
-    pp_int = 0
+    N_runs = 3
+    logtmax = 4
+    pp_int = 1
 
     #run
-    runs = make_runs(N_runs,pp_int)
+    runs = make_runs(N_runs,logtmax,pp_int)
     pool = mp.Pool(processes=np.min([N_runs, 5]))
     pool.map(execute, runs)
     pool.close()
