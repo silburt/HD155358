@@ -36,7 +36,7 @@ for f in files:
     name.append(f.split('/')[-1].split('_lnprob')[0].split('taueinner_')[1])
 
 x=range(1,len(glob_prob)+1)
-ref_value = 30               #Find X largest Bayes' Factor, to be used as the reference model.
+ref_value = 40               #Find X largest Bayes' Factor, to be used as the reference model.
 bayes_factor = glob_prob/glob_prob[get_X_largest(np.copy(glob_prob),ref_value)]
 
 plt.plot(x, bayes_factor, 'o')
