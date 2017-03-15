@@ -57,7 +57,7 @@ def make_runs(N_runs, logtmax):
 
 def execute(pars):
     theta, logtmax, name = pars
-    Npoints = 1500
+    Npoints = 2000
     times = 2*np.pi*np.logspace(1,logtmax,Npoints)
     t = simulate(theta,times,name)
     print "%e simulated years for %s"%(t,name)
