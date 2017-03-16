@@ -4,8 +4,8 @@ import numpy as np
 import sys
 import os
 
-Nsims = 10
-logtmax = 4
+Nsims = 1000
+logtmax = 9
 
 #delete existing jobs
 os.system('rm jobs/*')

@@ -4,8 +4,6 @@ import glob
 jobs_dir = 'jobs/'
 
 os.system('make clean && make')
-#os.system('mv rebound %s.'%jobs_dir)
-#os.chdir(jobs_dir)
 
 files = glob.glob('%s/*'%jobs_dir)
 for f in files:
