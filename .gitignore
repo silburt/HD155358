@@ -3,3 +3,6 @@ emcee_chains/*
 Nbody/output/*
 Nbody/saved_output/*
 Nbody/warm_and_old/*
+Stability/jobs/*
+Stability/output/*
+Stability/saved_output/*
