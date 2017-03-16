@@ -12,7 +12,7 @@ output_dir = 'output/'
 os.system('rm jobs/*')
 
 #samples
-filename = '../../emcee_chains/best_runs/hk_400walk_5000it_chkpt1.npy'
+filename = '../emcee_chains/best_runs/hk_400walk_5000it_chkpt1.npy'
 samples = np.load(filename)[:, 1000:, :].reshape((-1, 13))
 seeds = np.random.randint(len(samples), size=Nsims)
 

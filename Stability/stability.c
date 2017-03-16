@@ -27,6 +27,7 @@ double* a;
 double* e;
 double* MA;
 double log_constant, tlog_output;
+clock_t start;
 
 int main(int argc, char* argv[]){
     strcat(filename,argv[1]);
@@ -114,6 +115,7 @@ int main(int argc, char* argv[]){
     tlog_output = r->t + r->dt;
     
     // Integrate!
+    start = clock();
     reb_integrate(r, tmax);
     
     free(a); free(e); free(omega); free(lambda); free(MA);
@@ -135,14 +137,20 @@ void heartbeat(struct reb_simulation* r){
         fclose(f);
     }
     
-    if (reb_output_check(r, 5000.*r->dt)){
+    if (reb_output_check(r, 10000.*r->dt)){
         reb_integrator_synchronize(r);
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("%e",relE);
+        
+        //check that not going overtime
+        float hours = (clock() - start)*1.0 / CLOCKS_PER_SEC / 3600;
+        if(hours > 47.75){
+            printf("\n***Max time elapsed for %s. Exiting cleanly.***\n",filename);
+            exit(0);
+        }
     }
-
 }
 
 void calc_resonant_angles(struct reb_simulation* r, FILE* f){
