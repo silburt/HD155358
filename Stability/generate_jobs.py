@@ -5,7 +5,7 @@ import sys
 import os
 
 Nsims = 10
-logtmax = 9
+logtmax = 4
 output_dir = 'output/'
 
 #delete existing jobs
@@ -26,8 +26,6 @@ for i in range(Nsims):
         f_head.close()
         f.write('#PBS -N %s \n'%job_name)
         f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
-        f.write('cd $PBS_O_WORKDIR\n')
-        f.write('source venv/bin/activate\n')
-        #f.write('cd HD155358/Nbody/sunnyvale/ \n')
+        f.write('cd $PBS_O_WORKDIR\n')      #This will be the home Stability/ directory
         f.write('./rebound %s%s %e %e %e %e %e %e %e %e %e %e %e %e\n'%(output_dir,job_name,2*np.pi*10**logtmax,th[0],th[1],th[2],th[3],th[4],th[5],th[6],th[7],th[8],th[9],th[10]))
     f.close()
