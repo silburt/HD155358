@@ -112,11 +112,12 @@ int main(int argc, char* argv[]){
     //output frequency
     int n_output = 5000;
     log_constant = pow(tmax + 1, 1./(n_output - 1));
-    tlog_output = r->t + r->dt;
+    tlog_output = r->t + 10;
     
     // Integrate!
     start = clock();
     reb_integrate(r, tmax);
+    heartbeat(r);
     
     free(a); free(e); free(omega); free(lambda); free(MA);
     
@@ -124,15 +125,18 @@ int main(int argc, char* argv[]){
 
 void heartbeat(struct reb_simulation* r){
     //outputs
-    if(r->t > tlog_output){
+    if(r->t > tlog_output || r->status == REB_EXIT_ENCOUNTER || r->status == REB_EXIT_ESCAPE){
         tlog_output = r->t*log_constant;
         
         reb_integrator_synchronize(r);
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         
+        int stable = 1;
+        if(r->status == REB_EXIT_ENCOUNTER || r->status == REB_EXIT_ESCAPE) stable = 0;
+        
         FILE* f = fopen(filename, "a");
-        fprintf(f,"%e,%e,",r->t,relE);
+        fprintf(f,"%e,%e,%d,",r->t,relE,stable);
         calc_resonant_angles(r,f);
         fclose(f);
     }
@@ -146,8 +150,8 @@ void heartbeat(struct reb_simulation* r){
         
         //check that not going overtime
         float hours = (clock() - start)*1.0 / CLOCKS_PER_SEC / 3600;
-        if(hours > 47.75){
-            FILE* f = fopen("early_end.txt", "a");
+        if(hours > 47.5){
+            FILE* f = fopen("output/early_end.txt", "a");
             fprintf(f,"Max wall time elapsed for %s. Exiting cleanly at %e years.\n",filename,r->t);
             exit(0);
         }
@@ -204,5 +208,3 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     fprintf(f,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],lambda[1],omega[1],MA[1],a[2],e[2],lambda[2],omega[2],MA[2],phi,phi2,phi3);
     
 }
-
-
