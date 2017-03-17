@@ -10,7 +10,7 @@ colors=['b','g','m','r','c','y']
 file_name=str(sys.argv[1])
 
 fos = open(''+file_name, 'r')
-time, dE, a1, e1, l1, w1, M1, a2, e2, l2, w2, M2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+time, dE, stable, a1, e1, l1, w1, M1, a2, e2, l2, w2, M2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
 
 ms=6
 fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,13), sharex=True)
