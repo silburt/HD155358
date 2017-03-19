@@ -27,4 +27,4 @@ for f in files:
             print 'restarting job: %s'%job_name
             submit_job(f, job_name)
     else:
-        submit_job(f, job_name)
+        submit_job(f, job_name)     #submitting job for the first time
