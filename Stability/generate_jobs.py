@@ -1,4 +1,4 @@
-#This script generates the jobs for sunnyvale. To submit the jobs to sunnyvale, do 'python submit_jobs.py'
+#This script generates the jobs for sunnyvale and stores in the jobs/ folder. To submit the jobs to sunnyvale, do 'python submit_jobs.py'
 
 import numpy as np
 import sys
