@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import os
 
-Nsims = 1000
+Nsims = 10
 logtmax = 9
 
 #delete existing jobs

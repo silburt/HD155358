@@ -116,6 +116,7 @@ int main(int argc, char* argv[]){
     
     // Integrate!
     start = clock();
+    heartbeat(r);
     reb_integrate(r, tmax);
     heartbeat(r);
     
@@ -142,11 +143,11 @@ void heartbeat(struct reb_simulation* r){
     }
     
     if (reb_output_check(r, 10000.*r->dt)){
-        reb_integrator_synchronize(r);
-        double E = reb_tools_energy(r);
-        double relE = fabs((E-E0)/E0);
-        reb_output_timing(r, 0);
-        printf("%e",relE);
+//        reb_integrator_synchronize(r);
+//        double E = reb_tools_energy(r);
+//        double relE = fabs((E-E0)/E0);
+//        reb_output_timing(r, 0);
+//        printf("%e",relE);
         
         //check that not going overtime
         float hours = (clock() - start)*1.0 / CLOCKS_PER_SEC / 3600;
