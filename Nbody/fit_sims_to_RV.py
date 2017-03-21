@@ -35,7 +35,8 @@ def make_runs(N_runs):
     sini = []
     burnin = 1000
     ndim = 13
-    filename = '../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy'
+    #filename = '../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy'
+    filename = '../emcee_chains/best_runs/hk_400walk_5000it_chkpt1.npy'
     samples = np.load(filename)[:, burnin:, :].reshape((-1, ndim))
     for theta in samples[np.random.randint(len(samples), size=N_runs)]:
         m1.append(theta[0])
@@ -49,7 +50,7 @@ def make_runs(N_runs):
     K2 = random.sample(np.logspace(-1,3,10*N_runs), N_runs)
     path = 'output/'
     for i in xrange(0,N_runs):
-        seed = int(1000*random.random())
+        seed = int(10000*random.random())
         name = path+'taueinner_migrate%.1e_Kin%.1e_Kout%.1e_sd%d'%(mig_rate[i],K1[i],K2[i],seed)
         runs.append((m1[i],m2[i],sini[i],mig_rate[i],K1[i],K2[i],seed,name))
     return runs
@@ -109,8 +110,8 @@ def run_emcee(filename, time_RV, data_RV, err2_RV):
 
 ####################################################
 #############Main Code##############################
-samples = np.load('../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy')[:,1000:,:].reshape((-1, 13))
-MAPP = np.percentile(samples, 50, axis=0)[:-2]
+#samples = np.load('../emcee_chains/best_runs/hk_250walk_6000it/hk_250walk_6000it_chkpt5.npy')[:,1000:,:].reshape((-1, 13))
+#MAPP = np.percentile(samples, 50, axis=0)[:-2]
 
 #each pool worker executes this
 def execute(pars):
@@ -134,13 +135,8 @@ if __name__== '__main__':
     N_runs = 500
     runs = make_runs(N_runs)
     
-    #dir = 'good_ones/'
-    #dir = 'saved_output/round15_best_runs_/good_runs_copy/'
-    #runs, N_runs = retrieve_runs(dir)
-    
     pool = mp.Pool(processes=np.min([N_runs, 5]))
     pool.map(execute, runs)
     pool.close()
     pool.join()
 
-    #runs = [(0.90721388757667032, 0.8489328864365624, 0.95085548551813603, 10000.0, 1.0, 1.0, 649, 'output/taueinner_migrate1.0e+04_Kin1.0_Kout1.0_sd649')]

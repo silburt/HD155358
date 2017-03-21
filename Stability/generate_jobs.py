@@ -26,5 +26,5 @@ for i in range(Nsims):
         f.write('#PBS -N %s \n'%job_name)
         f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
         f.write('cd $PBS_O_WORKDIR\n')      #This will be the home Stability/ directory
-        f.write('./rebound output/%s %e %e %e %e %e %e %e %e %e %e %e %e\n'%(job_name,2*np.pi*10**logtmax,th[0],th[1],th[2],th[3],th[4],th[5],th[6],th[7],th[8],th[9],th[10]))
+        f.write('./rebound output/%s %e %e %e %e %e %e %e %e %e %e %e %e >& batch.output\n'%(job_name,2*np.pi*10**logtmax,th[0],th[1],th[2],th[3],th[4],th[5],th[6],th[7],th[8],th[9],th[10]))
     f.close()
