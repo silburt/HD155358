@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import os
 
-Nsims = 10
+Nsims = 28
 logtmax = 9
 sunnyvale = 0           #1=sunnyvale, 0=scinet
 
