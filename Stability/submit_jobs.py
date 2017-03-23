@@ -27,10 +27,11 @@ for f in files:
         if stable[-1] == 1 and job_name in early_stop:
             print 'restarting job: %s'%job_name
             submit_job(f, job_name)
+            Njobs += 1
     else:
         submit_job(f, job_name)     #submitting job for the first time
+        Njobs += 1
 
-    Njobs += 1
     if Njobs >= 635:                #640 single-node job limit for sunnyvale
         break
 

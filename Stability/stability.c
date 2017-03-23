@@ -142,7 +142,7 @@ void heartbeat(struct reb_simulation* r){
         fclose(f);
     }
     
-    if (reb_output_check(r, 10000.*r->dt)){
+    if (reb_output_check(r, 100.*r->dt)){
 //        reb_integrator_synchronize(r);
 //        double E = reb_tools_energy(r);
 //        double relE = fabs((E-E0)/E0);
