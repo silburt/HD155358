@@ -54,7 +54,7 @@ bar.finish()
 
 #plot data
 size=15
-colorbar = 'winter'
+colorbar = 'rainbow'
 fontsize=20
 fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(16,15))
 ax = ax.flatten()

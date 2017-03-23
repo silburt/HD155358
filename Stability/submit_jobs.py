@@ -14,7 +14,6 @@ jobs_dir = 'jobs/'
 
 os.system('make clean && make')
 
-early_stop = open('output/early_end.txt').read()    #list of runs that ended early on sunnyvale
 files = glob.glob('%s/*'%jobs_dir)
 Njobs = 0
 for f in files:
@@ -24,7 +23,7 @@ for f in files:
     csv = 'output/%s.csv'%job_name
     if os.path.exists(csv):
         time, dE, stable, a1, e1, l1, w1, M1, a2, e2, l2, w2, M2, phi1, phi2, phi3 = np.loadtxt(open(csv, 'r'), delimiter=',', unpack=True)
-        if stable[-1] == 1 and job_name in early_stop:
+        if stable[-1] == 1 and time[-1]<6.28e9:
             print 'restarting job: %s'%job_name
             submit_job(f, job_name)
             Njobs += 1
