@@ -56,8 +56,9 @@ samples_LP = np.load('%s_chain.npy'%filename)[:,500:,:].reshape((-1, 6))
 MAP_LP = np.percentile(samples_LP, 50, axis=0)
 x_s, x_t, y_s, y_t, phi, jitter2 = MAP_LP
 times = (times*dtoyr2pi + x_t)/x_s
-Chi2_LP = np.sum((data["RV"] - (y_s*get_simRV(filename,times,phi) + y_t))**2 / data["Unc"]**2) / 6
+Chi2_LP = np.sum((data["RV"] - (y_s*get_simRV(filename,times,phi) + y_t))**2 / data["Unc"]**2) / 8
 
-print Chi2_PPI, Chi2_noPPI, Chi2_LP
+print "Chi^2_reduced:"
+print "PPI=%f, noPPI=%f, L&P=%f"%(Chi2_PPI, Chi2_noPPI, Chi2_LP)
 
 

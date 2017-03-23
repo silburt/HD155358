@@ -151,7 +151,7 @@ void heartbeat(struct reb_simulation* r){
         
         //check that not going overtime
         float hours = (clock() - start)*1.0 / CLOCKS_PER_SEC / 3600;
-        if(hours > 47.5){
+        if(hours > 46){
             FILE* f = fopen("output/early_end.txt", "a");
             fprintf(f,"Max wall time elapsed for %s. Exiting cleanly at %e years.\n",filename,r->t);
             exit(0);
