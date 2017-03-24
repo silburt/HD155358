@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
         r->dt = 2*M_PI*sqrt(a1*a1*a1/m0)/200;
         r->exit_min_distance = MIN(a1*pow(m1sini*mJ/sini/m0/3.,1./3.) , a2*pow(m2sini*mJ/sini/m0/3.,1./3.));
         r->exit_max_distance = 10;
-        r->simulationarchive_interval = 2.*M_PI*tmax/10000; // 10000 simulation checkpoints
+        r->simulationarchive_interval = tmax/10000;         // 10000 simulation checkpoints
         r->ri_whfast.safe_mode = 0;
         
         // Star

@@ -39,7 +39,7 @@ else:               #scinet - 8 jobs per batch script
             f_head = open('job_header_scinet','r')
             f.write(f_head.read())
             f_head.close()
-            f.write('make clean && make\n') 
+            f.write('make clean && make\n')
             for j in range(8):
                 seed = np.random.randint(len(samples))
                 th = samples[seed]
