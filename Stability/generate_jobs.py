@@ -39,8 +39,10 @@ else:               #scinet - 8 jobs per batch script
             f_head = open('job_header_scinet','r')
             f.write(f_head.read())
             f_head.close()
+            f.write('make clean && make\n') 
             for j in range(8):
-                th = samples[np.random.randint(len(samples))]
-                f.write('(./rebound output/%s %e %e %e %e %e %e %e %e %e %e %e %e) &\n'%(job_name,2*np.pi*10**logtmax,th[0],th[1],th[2],th[3],th[4],th[5],th[6],th[7],th[8],th[9],th[10]))
+                seed = np.random.randint(len(samples))
+                th = samples[seed]
+                f.write('(./rebound output/%s_sd%d %e %e %e %e %e %e %e %e %e %e %e %e) &\n'%(job_name,seed,2*np.pi*10**logtmax,th[0],th[1],th[2],th[3],th[4],th[5],th[6],th[7],th[8],th[9],th[10]))
             f.write('wait')
         f.close()
