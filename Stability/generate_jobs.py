@@ -4,12 +4,13 @@ import numpy as np
 import sys
 import os
 
-Nsims = 28
+Nsims = 380
 logtmax = 9
-sunnyvale = 0           #1=sunnyvale, 0=scinet
+sunnyvale = 1           #1=sunnyvale, 0=scinet
+dir = 'jobs2/'
 
 #delete existing jobs
-os.system('rm jobs/*')
+#os.system('rm %s*'%dir)
 
 #samples
 filename = '../emcee_chains/best_runs/hk_400walk_5000it_chkpt1.npy'
@@ -19,8 +20,8 @@ if sunnyvale == 1:  #sunnyvale
     seeds = np.random.randint(len(samples), size=Nsims)
     for i in range(Nsims):
         th = samples[seeds[i]]
-        job_name = "tmax1e%d_sd%d"%(logtmax,seeds[i])
-        sh_script_name = "jobs/%s"%job_name
+        job_name = "tmax1e%d_sunnyrun%d"%(logtmax,seeds[i])
+        sh_script_name = "%s%s"%(dir,job_name)
         with open(sh_script_name, 'w') as f:
             f_head = open('job_header_sunnyvale','r')
             f.write(f_head.read())
@@ -34,7 +35,7 @@ if sunnyvale == 1:  #sunnyvale
 else:               #scinet - 8 jobs per batch script
     for i in range(Nsims):
         job_name = "tmax1e%d_scinetrun%d"%(logtmax,i)
-        sh_script_name = "jobs/%s"%job_name
+        sh_script_name = "%s%s"%(dir,job_name)
         with open(sh_script_name, 'w') as f:
             f_head = open('job_header_scinet','r')
             f.write(f_head.read())
