@@ -15,7 +15,7 @@ jobs_dir = 'jobs/'
 os.system('make clean && make')
 
 files = glob.glob('%s/*'%jobs_dir)
-Njobs = 0
+Njobs_counter = 0
 for f in files:
     job_name = f.split(jobs_dir)[1]
     
@@ -26,12 +26,12 @@ for f in files:
         if stable[-1] == 1 and time[-1]<6.26e9:
             print 'restarting job: %s'%job_name
             submit_job(f, job_name)
-            Njobs += 1
+            Njobs_counter += 1
     else:
         submit_job(f, job_name)     #submitting job for the first time
-        Njobs += 1
+        Njobs_counter += 1
 
-    if Njobs >= 635:                #640 single-node job limit for sunnyvale
+    if Njobs_counter >= 635:        #640 single-node job limit for sunnyvale
         break
 
-print 'submitted %d jobs'%Njobs
+print 'submitted %d jobs'%Njobs_counter
