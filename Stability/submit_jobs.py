@@ -10,7 +10,7 @@ def submit_job(f, job_name):
     os.system('qsub %s'%job_name)
     os.system('mv %s %s'%(job_name,f))
 
-jobs_dir = 'jobs/'
+jobs_dir = 'jobs_temp/'
 
 os.system('make clean && make')
 

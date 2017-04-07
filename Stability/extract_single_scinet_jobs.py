@@ -6,7 +6,6 @@ import numpy as np
 import glob
 import sys
 import os
-from progress.bar import Bar
 
 input_dir = sys.argv[1]     #original job files (sims grouped in 8)
 output_dir = sys.argv[2]    #where you want the single job files to go
@@ -34,7 +33,6 @@ if repackage_singles == 1:
     job_name = "tmax1e9_scinetrun%d"%(fileno)
     f = open("%s%s"%(input_dir,job_name),'w')
     f.write(open('job_header_scinet','r').read())
-    bar = Bar('Processing', max=len(jobs))
     for j in jobs:
         job_name = j.split(output_dir)[1]
         csv = '%s%s.csv'%(csv_dir,job_name)
@@ -52,5 +50,3 @@ if repackage_singles == 1:
             job_name = "tmax1e9_scinetrun%d"%(fileno)
             f = open("%s%s"%(input_dir,job_name),'w')
             f.write(open('job_header_scinet','r').read())
-        bar.next()
-    bar.finish()
