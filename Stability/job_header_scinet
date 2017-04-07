@@ -3,3 +3,4 @@
 #PBS -N serialx8
 module load intel/16.0.3 gcc/5.2.0 extras
 cd $PBS_O_WORKDIR
+make clean && make
