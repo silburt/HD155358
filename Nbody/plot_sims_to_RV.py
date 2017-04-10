@@ -45,7 +45,7 @@ for i,f in enumerate(files):
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1, 1])
     ax0 = plt.subplot(gs[0])
     ax1 = plt.subplot(gs[1], sharex=ax0)
-    plt.subplots_adjust(hspace = 0.25)
+    plt.subplots_adjust(hspace = 0)
     
     times = (time_RV + x_t)/x_s
     simRV = y_s*get_simRV(name,times,phi) + y_t

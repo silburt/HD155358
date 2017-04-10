@@ -101,5 +101,5 @@ plt.savefig('%sstability_plot.pdf'%dir)
 #Percent that are stable
 N_samples = float(len(t_arr))
 stable = float(len(t_arr[t_arr>9.8e8]))/N_samples
-print "percent of stable systems over 1e9 years = %f +/- %f"%(stable,sqrt(N_samples)/N_samples)
+print "percent of stable systems over 1e9 years = %f +/- %f"%(stable,np.sqrt(N_samples)/N_samples)
 print "Total samples used: %d"%len(t_arr)
