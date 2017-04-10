@@ -39,6 +39,8 @@ bar = Bar('Processing', max=len(files))
 for f in files:
     try:
         data = np.loadtxt(open(f, 'r'), delimiter=',')
+        if np.any(np.isnan(data)):
+            print 'NaN in %s'%f
         if data[-1,0] > 6.25e9 or data[-1,2] == 0:  #completed simulations
             ini = get_ini(dir,f)
             params.append(ini)
@@ -48,7 +50,7 @@ for f in files:
     bar.next()
 bar.finish()
 
-theta = ['m_1sini','m_2sini','a_1','a_2','e_1','e_2','w_1','w_2','M_1','M_2','sini']
+theta = ['m_1\mathrm{sin}i','m_2\mathrm{sin}i','a_1','a_2','e_1','e_2','w_1','w_2','M_1','M_2','sini']
 params = np.asarray(zip(*params))
 t_arr = np.log10(np.asarray(t_arr))
 MAP = get_MAP()                     #get MAP values
@@ -69,11 +71,12 @@ for i in range(len(theta)):
     else:
         vals = params[i]
         x = [vals[t_arr >= 8.99], vals[t_arr < 8.99]]
-        n, bins, patches = ax[i].hist(x, 20, histtype='bar', stacked=True, label=['stable','unstable'])
+        n, bins, patches = ax[i].hist(x, 20, histtype='bar', stacked=True, color=['lime','red'], label=['stable','unstable'], edgecolor='none')
         nmax = np.max(n)
         max = np.max((nmax, max))
-    ax[i].set_xlabel('$%s$'%theta[i], fontsize=fontsize)
-    ax[i].plot([MAP[i], MAP[i]], [0,max], 'k--', lw=3)
+    ax[i].set_xlabel(r'$%s$'%theta[i], fontsize=fontsize)
+    ymin, ymax = ax[i].get_ylim()
+    ax[i].plot([MAP[i], MAP[i]], [0,ymax], 'k--', lw=3)
     xticks = ax[i].xaxis.get_major_ticks()
     xticks[-1].label1.set_visible(False)
     #xticks[0].label1.set_visible(False)
