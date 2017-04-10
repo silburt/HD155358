@@ -28,7 +28,7 @@ if repackage_singles == 1:
     print "repackaging jobs"
     csv_dir = sys.argv[3]       #where csvs are stored
     jobs = glob.glob('%s*'%output_dir)
-    fileno = 100
+    fileno = 900
     njobsinfile = 0
     job_name = "tmax1e9_scinetrun%d"%(fileno)
     f = open("%s%s"%(input_dir,job_name),'w')

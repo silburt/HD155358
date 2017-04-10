@@ -10,6 +10,7 @@ from progress.bar import Bar
 
 #arguments
 dir=str(sys.argv[1])
+scatter = 0
 
 #get initial theta values from each jobs file
 def get_ini(dir,f):
@@ -56,31 +57,41 @@ MAP = get_MAP()                     #get MAP values
 size=30
 fontsize=20
 alpha = 0.2
-fig, ax = plt.subplots(nrows=4, ncols=3, figsize=(16,15))
+fig, ax = plt.subplots(nrows=4, ncols=3, figsize=(16,15), sharey=True)
 plt.subplots_adjust(wspace = 0, hspace=0.3)
 ax = ax.flatten()
+max = 0
 for i in range(len(theta)):
-    ax[i].plot([MAP[i], MAP[i]], [0,9.6], 'k--', lw=3)
-    ax[i].scatter(params[i],t_arr, s=size, alpha=alpha, lw=0)
-    ax[i].set_ylim([4,9.5])
+    if scatter == 1:
+        ax[i].scatter(params[i],t_arr, s=size, alpha=alpha, lw=0)
+        ax[i].set_ylim([4,9.5])
+        max = 9.6
+    else:
+        vals = params[i]
+        x = [vals[t_arr >= 8.99], vals[t_arr < 8.99]]
+        n, bins, patches = ax[i].hist(x, 20, histtype='bar', stacked=True, label=['stable','unstable'])
+        nmax = np.max(n)
+        max = np.max((nmax, max))
     ax[i].set_xlabel('$%s$'%theta[i], fontsize=fontsize)
-#    xticks = ax[i].xaxis.get_major_ticks()
-#    xticks[0].label1.set_visible(False)
-#    xticks[-1].label1.set_visible(False)
-#    if i == 0:
-#        xticks[-2].label1.set_visible(False)
-#    elif i == 1:
-#        xticks[1].label1.set_visible(False)
-#    elif i == 4:
-#        xticks[1].label1.set_visible(False)
+    ax[i].plot([MAP[i], MAP[i]], [0,max], 'k--', lw=3)
+    xticks = ax[i].xaxis.get_major_ticks()
+    xticks[-1].label1.set_visible(False)
+    #xticks[0].label1.set_visible(False)
 
 #final figure fixes
 fig.delaxes(ax[11])
 ax[10].set_xlim([0,1])
-plt.savefig('%sstability_plot_new.pdf'%dir)
+if scatter == 0:
+    ax[0].legend(loc='upper left', fontsize=11)
+
+#save
+ext = 'histogram'
+if scatter == 1:
+    ext = 'scatter'
+plt.savefig('%sstability_plot_%s.pdf'%(dir,ext))
 
 #Percent that are stable
 N_samples = float(len(t_arr))
-stable = float(len(t_arr[t_arr>9.8e8]))/N_samples
+stable = float(len(t_arr[t_arr>8.99]))/N_samples
 print "percent of stable systems over 1e9 years = %f +/- %f"%(stable,np.sqrt(N_samples)/N_samples)
 print "Total samples used: %d"%len(t_arr)
