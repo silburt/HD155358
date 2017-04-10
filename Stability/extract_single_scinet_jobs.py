@@ -38,7 +38,7 @@ if repackage_singles == 1:
         csv = '%s%s.csv'%(csv_dir,job_name)
         if os.path.exists(csv):
             time, dE, stable, a1, e1, l1, w1, M1, a2, e2, l2, w2, M2, phi1, phi2, phi3 = np.loadtxt(open(csv, 'r'), delimiter=',', unpack=True)
-            if stable[-1] == 1 and time[-1]<6.26e9:
+            if stable[-1] == 1 and time[-1]<6.23e9:
                 j_ = open(j,'r').read()
                 f.write('(%s) &\n'%j_)
                 njobsinfile += 1
