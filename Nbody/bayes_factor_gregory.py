@@ -31,12 +31,12 @@ for f in files:
     #std = 1
     #for i in range(n_params):
     #    std *= np.std(samples[:,i])
-    std = np.linalg.det(np.cov(samples, rowvar=0)) * (2*np.pi)**(n_params/2)
+    std = np.sqrt(np.linalg.det(np.cov(samples, rowvar=0))) * (2*np.pi)**(n_params/2)
     glob_prob = np.append(glob_prob, MLE*std)
     name.append(f.split('/')[-1].split('_lnprob')[0].split('taueinner_')[1])
 
 x=range(1,len(glob_prob)+1)
-ref_value = 45               #Find X largest Bayes' Factor, to be used as the reference model.
+ref_value = 46               #Find X largest Bayes' Factor, to be used as the reference model.
 bayes_factor = glob_prob/glob_prob[get_X_largest(np.copy(glob_prob),ref_value)]
 
 plt.plot(x, bayes_factor, 'o')
