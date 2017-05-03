@@ -55,7 +55,7 @@ for f in files:
     bar.next()
 bar.finish()
 
-theta = ['m_1\mathrm{sin}i \ (\mathrm{M_J})','m_2\mathrm{sin}i \ (\mathrm{M_J})','sini','a_1 \ \mathrm{(AU)}','a_2 \ \mathrm{(AU)}','\gamma \ \mathrm{(m/s)}','e_1','e_2','J \ \mathrm{(m/s)}','w_1','w_2','junk','M_1','M_2']
+theta = ['m_1\mathrm{sin}(i) \ (\mathrm{M_J})','m_2\mathrm{sin}(i) \ (\mathrm{M_J})','sin(i)','a_1 \ \mathrm{(AU)}','a_2 \ \mathrm{(AU)}','\gamma \ \mathrm{(m/s)}','e_1','e_2','J \ \mathrm{(m/s)}','w_1','w_2','junk','M_1','M_2']
 params = np.asarray(zip(*params))
 t_arr = np.log10(np.asarray(t_arr))
 MAP = get_theta(np.percentile(samples,50,axis=0))
@@ -77,7 +77,8 @@ for i in range(len(theta)):
     ax[i].set_xlabel(r'$%s$'%theta[i], fontsize=fontsize)
     xticks = ax[i].xaxis.get_major_ticks()
     xticks[-1].label1.set_visible(False)
-    #xticks[0].label1.set_visible(False)
+    if i in [7,12]:
+        xticks[-2].label1.set_visible(False)
 
 ymin, ymax = ax[i].get_ylim()
 for i in range(len(theta)):
