@@ -25,7 +25,7 @@ def get_simRV(filename, time_sim, phi):
 dir = sys.argv[1]
 plot_corner = 0
 n_params = 6    #x_s, x_t, y_s, y_t, phi, jitter2
-fontsize=13
+fontsize=20
 
 #main code
 dtoyr2pi = 2*np.pi/365.              #days -> yr/2pi
@@ -54,7 +54,7 @@ for i,f in enumerate(files):
     timesfull = (times*x_s - x_t)/dtoyr2pi + data['BJD'][0]
     lnL = -0.5*np.sum( (simRV - data_RV)**2/(err_RV**2 + jitter2) + np.log(err_RV**2 + jitter2) )
     if lnL > -290 and jitter2 < 20:
-        for theta_sample in sim_samples[np.random.randint(len(sim_samples), size=100)]:
+        for theta_sample in sim_samples[np.random.randint(len(sim_samples), size=80)]:
             x_s, x_t, y_s, y_t, phi, jitter2 = theta_sample
             times_sample = np.linspace(0,80/x_s,300)
             simRVfull_sample = y_s*get_simRV(name,times_sample,phi) + y_t
@@ -67,10 +67,13 @@ for i,f in enumerate(files):
     ax0.plot(timesfull[index],simRVfull[index], color='green',linewidth=2, label='MAP curve')   #sim full curve
     ax0.errorbar(time_RVdays,data_RV, yerr=err_RV, fmt='o', color='blue', label='data')         #data points
     #ax0.plot(time_RVdays, simRV, '.', color='red', label='MAP points')                         #sim points
-    ax0.legend(loc='upper right',fontsize=9,numpoints=1)
+    ax0.legend(loc='upper right',fontsize=11,numpoints=1)
     ax0.set_ylabel('RV (m/s)',fontsize=fontsize)
     ax0.set_xlabel('BJD - 2450000',fontsize=fontsize)
-    ax0.set_xlim([2000,6100])
+    ax0.set_xlim([2000,6200])
+    ax0.tick_params(axis='y', which='major', labelsize=15)
+    ax0.xaxis.set_visible(False)
+    ax1.tick_params(axis='both', which='major', labelsize=15)
     #ax0.set_title('lnL = %f'%lnL)
     
     ax1.errorbar(time_RVdays, simRV - data_RV, yerr=err_RV, fmt='o', color='green')

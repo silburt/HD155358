@@ -61,9 +61,9 @@ for f in good_files:
 #plotting
 size=50
 colorbar = 'winter'
-fontsize=16
+fontsize=25
 fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8,10))
-plt.subplots_adjust(hspace = 0.2)
+plt.subplots_adjust(hspace = 0.25)
 sc = ax[0].scatter(K_1,K_2,c=np.log10(np.asarray(tau_a2)), s=size, cmap=colorbar, lw=0, label='simulated points')
 ax[0].set_xlim([1e-1, 1e3])
 ax[0].set_ylim([1e-1, 2e3])
@@ -71,6 +71,7 @@ ax[0].set_xlabel(r'$K_1$',fontsize=fontsize)
 ax[0].set_ylabel(r'$K_2$',fontsize=fontsize)
 ax[0].set_yscale('log')
 ax[0].set_xscale('log')
+ax[0].tick_params(axis='both', which='major', labelsize=15)
 
 sc = ax[1].scatter(tau_e1,tau_e2,c=np.log10(np.asarray(tau_a2)), s=size, cmap=colorbar, lw=0, label='simulated points')
 ax[1].set_xlim([min(tau_e1)/2, max(tau_e1)*2])
@@ -79,8 +80,11 @@ ax[1].set_xlabel(r'$\tau_{e_1}$',fontsize=fontsize)
 ax[1].set_ylabel(r'$\tau_{e_2}$',fontsize=fontsize)
 ax[1].set_yscale('log')
 ax[1].set_xscale('log')
+ax[1].tick_params(axis='both', which='major', labelsize=15)
 
 fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
-fig.colorbar(sc, label=r'log10($\tau_{a_2}$)',cax=cbar_ax)
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(label=r'log10($\tau_{a_2}$)', size=18)
+cb.ax.tick_params(labelsize=15)
 plt.savefig('%splot_good_ones.pdf'%dir)
